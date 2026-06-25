@@ -1,0 +1,22 @@
+[
+  {"name": "Massachusetts Institute of Technology", "source_url": "https://www.mit.edu", "country": "United States", "city": "Cambridge", "external_id": "mit.edu", "priority": 10},
+  {"name": "Stanford University", "source_url": "https://www.stanford.edu", "country": "United States", "city": "Stanford", "external_id": "stanford.edu", "priority": 10},
+  {"name": "University of Oxford", "source_url": "https://www.ox.ac.uk", "country": "United Kingdom", "city": "Oxford", "external_id": "ox.ac.uk", "priority": 10},
+  {"name": "University of Cambridge", "source_url": "https://www.cam.ac.uk", "country": "United Kingdom", "city": "Cambridge", "external_id": "cam.ac.uk", "priority": 10},
+  {"name": "University of Toronto", "source_url": "https://www.utoronto.ca", "country": "Canada", "city": "Toronto", "external_id": "utoronto.ca", "priority": 20},
+  {"name": "University of British Columbia", "source_url": "https://www.ubc.ca", "country": "Canada", "city": "Vancouver", "external_id": "ubc.ca", "priority": 20},
+  {"name": "University of Melbourne", "source_url": "https://www.unimelb.edu.au", "country": "Australia", "city": "Melbourne", "external_id": "unimelb.edu.au", "priority": 20},
+  {"name": "Technical University of Munich", "source_url": "https://www.tum.de", "country": "Germany", "city": "Munich", "external_id": "tum.de", "priority": 30},
+  {"name": "National University of Singapore", "source_url": "https://www.nus.edu.sg", "country": "Singapore", "city": "Singapore", "external_id": "nus.edu.sg", "priority": 30},
+  {"name": "Imperial College London", "source_url": "https://www.imperial.ac.uk", "country": "United Kingdom", "city": "London", "external_id": "imperial.ac.uk", "priority": 10},
+  {"name": "Harvard University", "source_url": "https://www.harvard.edu", "country": "United States", "city": "Cambridge", "external_id": "harvard.edu", "priority": 10},
+  {"name": "University of California Berkeley", "source_url": "https://www.berkeley.edu", "country": "United States", "city": "Berkeley", "external_id": "berkeley.edu", "priority": 15},
+  {"name": "Carnegie Mellon University", "source_url": "https://www.cmu.edu", "country": "United States", "city": "Pittsburgh", "external_id": "cmu.edu", "priority": 15},
+  {"name": "University of Manchester", "source_url": "https://www.manchester.ac.uk", "country": "United Kingdom", "city": "Manchester", "external_id": "manchester.ac.uk", "priority": 25},
+  {"name": "Northeastern University", "source_url": "https://www.northeastern.edu", "country": "United States", "city": "Boston", "external_id": "northeastern.edu", "priority": 25},
+  {"name": "Arizona State University", "source_url": "https://www.asu.edu", "country": "United States", "city": "Tempe", "external_id": "asu.edu", "priority": 40},
+  {"name": "University of Auckland", "source_url": "https://www.auckland.ac.nz", "country": "New Zealand", "city": "Auckland", "external_id": "auckland.ac.nz", "priority": 35},
+  {"name": "San Jose State University", "source_url": "https://www.sjsu.edu", "country": "United States", "city": "San Jose", "external_id": "sjsu.edu", "priority": 45},
+  {"name": "University of Waterloo", "source_url": "https://uwaterloo.ca", "country": "Canada", "city": "Waterloo", "external_id": "uwaterloo.ca", "priority": 25},
+  {"name": "ETH Zurich", "source_url": "https://ethz.ch", "country": "Switzerland", "city": "Zurich", "external_id": "ethz.ch", "priority": 15}
+]
