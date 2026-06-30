@@ -4,6 +4,7 @@ export const NAV_ITEMS = [
   { href: "/universities", label: "Universities", icon: "GraduationCap" },
   { href: "/scholarships", label: "Scholarships", icon: "Wallet" },
   { href: "/advisor", label: "AI Advisor", icon: "Bot" },
+  { href: "/planner", label: "Planner", icon: "CalendarCheck" },
   { href: "/applications", label: "Applications", icon: "FolderOpen" },
   { href: "/documents", label: "Documents", icon: "FileText" },
   { href: "/timeline", label: "Timeline", icon: "GitBranch" },

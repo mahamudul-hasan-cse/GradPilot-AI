@@ -66,19 +66,19 @@ class KnowledgeVectorStore:
         source_types: list[str] | None = None,
         limit: int = 20,
     ) -> list[KnowledgeChunk]:
-        self.ensure_collection()
-        vector = self._embedder.embed(query)
-        query_filter = None
-        if source_types:
-            query_filter = qmodels.Filter(
-                must=[
-                    qmodels.FieldCondition(
-                        key="source_type",
-                        match=qmodels.MatchAny(any=source_types),
-                    )
-                ]
-            )
         try:
+            self.ensure_collection()
+            vector = self._embedder.embed(query)
+            query_filter = None
+            if source_types:
+                query_filter = qmodels.Filter(
+                    must=[
+                        qmodels.FieldCondition(
+                            key="source_type",
+                            match=qmodels.MatchAny(any=source_types),
+                        )
+                    ]
+                )
             hits = self._get_client().search(
                 collection_name=KNOWLEDGE_COLLECTION,
                 query_vector=vector,

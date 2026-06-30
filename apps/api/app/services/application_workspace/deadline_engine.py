@@ -17,7 +17,8 @@ class DeadlineEngine:
 
     async def seed_default_deadlines(self, application: Application) -> list[ApplicationDeadline]:
         created: list[ApplicationDeadline] = []
-        existing_types = {d.deadline_type for d in (application.deadlines or [])}
+        existing_deadlines = await self.deadline_repo.get_by_application(application.id)
+        existing_types = {d.deadline_type for d in existing_deadlines}
 
         if application.deadline and "application" not in existing_types:
             created.append(

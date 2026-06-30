@@ -42,7 +42,7 @@ export default function ProfilePage() {
         target_degree: profile.target_degree ?? "",
         field_of_study: profile.field_of_study ?? "",
         gpa: profile.gpa != null ? String(profile.gpa) : "",
-        ielts_score: profile.ielts_score != null ? String(profile.ielts_score) : "",
+        ielts_score: profile.test_scores?.ielts != null ? String(profile.test_scores.ielts) : "",
         bio: profile.bio ?? "",
       });
     }
@@ -54,7 +54,7 @@ export default function ProfilePage() {
       target_degree: data.target_degree || null,
       field_of_study: data.field_of_study || null,
       gpa: data.gpa ? Number(data.gpa) : null,
-      ielts_score: data.ielts_score ? Number(data.ielts_score) : null,
+      test_scores: data.ielts_score ? { ielts: Number(data.ielts_score) } : null,
       bio: data.bio || null,
     });
   }
@@ -121,9 +121,9 @@ export default function ProfilePage() {
               {analysis ? (
                 <>
                   {[
-                    { label: "Academic", value: analysis.academic_score },
-                    { label: "Language", value: analysis.language_score },
-                    { label: "Experience", value: analysis.experience_score },
+                    { label: "Admission", value: analysis.admission_readiness_score },
+                    { label: "Scholarship", value: analysis.scholarship_readiness_score },
+                    { label: "Employability", value: analysis.employability_score },
                   ].map((item) => (
                     <div key={item.label}>
                       <div className="mb-1 flex justify-between text-sm">

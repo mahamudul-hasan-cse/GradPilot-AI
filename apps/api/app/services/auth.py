@@ -9,6 +9,7 @@ from app.core.security import (
     verify_password,
     verify_refresh_token,
 )
+from app.core.config import settings
 from app.models.user import User
 from app.repositories.user import UserRepository
 from app.schemas.auth import TokenResponse, UserLogin, UserRegister, UserResponse
@@ -49,6 +50,7 @@ class AuthService:
         return TokenResponse(
             access_token=create_access_token(user.id),
             refresh_token=create_refresh_token(user.id),
+            expires_in=settings.jwt_access_token_expire_minutes * 60,
         )
 
     async def refresh_token(self, refresh_token: str) -> TokenResponse:
@@ -70,6 +72,7 @@ class AuthService:
         return TokenResponse(
             access_token=create_access_token(user.id),
             refresh_token=create_refresh_token(user.id),
+            expires_in=settings.jwt_access_token_expire_minutes * 60,
         )
 
     async def get_current_user_profile(self, user: User) -> UserResponse:

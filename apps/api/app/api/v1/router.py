@@ -7,9 +7,11 @@ from app.api.v1.endpoints import (
     discovery,
     documents,
     ingestion,
+    planner,
     profile,
     recommendations,
     scholarships,
+    sop_studio,
     student,
     universities,
 )
@@ -19,6 +21,8 @@ api_router.include_router(auth.router)
 api_router.include_router(profile.router)
 api_router.include_router(ai.router)
 api_router.include_router(student.router)
+api_router.include_router(planner.router)
+api_router.include_router(sop_studio.router)
 api_router.include_router(documents.router)
 api_router.include_router(universities.router)
 api_router.include_router(discovery.router)

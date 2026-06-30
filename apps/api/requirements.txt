@@ -14,18 +14,15 @@ alembic==1.14.0
 # Auth
 python-jose[cryptography]==3.3.0
 passlib[bcrypt]==1.7.4
-bcrypt==4.2.1
+bcrypt==4.0.1
 
 # AI / Vector
-langchain==0.3.14
-langchain-openai==0.3.0
-langgraph==0.2.62
 qdrant-client==1.12.2
-openai==1.59.3
 
 # Utils
 httpx==0.28.1
 email-validator==2.2.0
+redis==5.2.1
 
 # Ingestion
 beautifulsoup4==4.12.3
@@ -33,5 +30,6 @@ lxml==5.3.0
 apscheduler==3.10.4
 rapidfuzz==3.10.1
 
-# Cache
-redis==5.2.1
+# Export (SOP Studio)
+python-docx==1.1.2
+fpdf2==2.8.2

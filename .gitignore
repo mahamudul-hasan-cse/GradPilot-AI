@@ -1,4 +1,4 @@
-# Dependencies
+# ── Dependencies ──────────────────────────────────────────────────────────────
 node_modules/
 __pycache__/
 *.py[cod]
@@ -12,23 +12,45 @@ build/
 venv/
 env/
 
-# Environment
+# ── Secrets & environment (NEVER commit real keys) ────────────────────────────
 .env
 .env.local
 .env.*.local
+apps/api/.env
+apps/web/.env.local
+*.pem
+*.key
+credentials.json
+service-account*.json
+secrets/
 
-# IDE
+# Keep example env files (placeholders only)
+!.env.example
+!apps/web/.env.example
+
+# ── Local databases & tooling (machine-specific) ─────────────────────────────
+/data/
+/tools/
+
+# ── User uploads & generated files ───────────────────────────────────────────
+apps/api/uploads/
+uploads/
+
+# ── IDE & OS ─────────────────────────────────────────────────────────────────
 .idea/
 .vscode/
+.cursor/
 *.swp
 *.swo
+.DS_Store
+Thumbs.db
 
-# Next.js
+# ── Next.js ───────────────────────────────────────────────────────────────────
 apps/web/.next/
 apps/web/out/
 apps/web/next-env.d.ts
 
-# Python
+# ── Python testing & coverage ─────────────────────────────────────────────────
 .pytest_cache/
 .mypy_cache/
 .ruff_cache/
@@ -36,16 +58,9 @@ htmlcov/
 .coverage
 *.cover
 
-# Docker
+# ── Logs ──────────────────────────────────────────────────────────────────────
 *.log
+logs/
 
-# OS
-.DS_Store
-Thumbs.db
-
-# Alembic
+# ── Alembic ───────────────────────────────────────────────────────────────────
 apps/api/alembic/versions/*.pyc
-
-# Document uploads
-apps/api/uploads/
-uploads/

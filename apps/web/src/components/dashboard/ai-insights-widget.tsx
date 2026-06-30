@@ -8,7 +8,7 @@ import { useProfileAnalysis } from "@/hooks/use-queries";
 
 export function AIInsightsWidget() {
   const { data, isLoading, isError } = useProfileAnalysis();
-  const insights = data?.recommendations ?? data?.gaps ?? [];
+  const insights = data?.recommended_actions ?? data?.weaknesses ?? [];
 
   return (
     <Card className="glass">

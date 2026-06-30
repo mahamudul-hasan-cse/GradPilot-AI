@@ -92,7 +92,7 @@ curl -X POST http://localhost:8000/api/v1/universities/search \
 
 `POST /universities/semantic-search`
 
-Natural-language search powered by OpenAI embeddings (or deterministic fallback) stored in **Qdrant**.
+Natural-language search powered by deterministic local embeddings stored in **Qdrant**.
 
 **Example**
 
@@ -171,14 +171,15 @@ Each university receives a **composite score** (0–1) from weighted factors:
 ## Seed data & indexing
 
 ```bash
-# Load 12 universities + index Qdrant vectors
-docker compose exec api python scripts/seed_universities.py
+# Load 12 universities + index vectors
+cd apps/api
+python scripts/seed_universities.py
 
 # Force reload
-docker compose exec api python scripts/seed_universities.py --force
+python scripts/seed_universities.py --force
 
 # Skip vector indexing
-docker compose exec api python scripts/seed_universities.py --no-index
+python scripts/seed_universities.py --no-index
 ```
 
 ---
@@ -187,12 +188,10 @@ docker compose exec api python scripts/seed_universities.py --no-index
 
 | Variable | Default | Description |
 |----------|---------|-------------|
-| `OPENAI_API_KEY` | — | Enables OpenAI embeddings |
-| `EMBEDDING_MODEL` | `text-embedding-3-small` | Embedding model |
 | `QDRANT_HOST` | `localhost` | Qdrant host |
 | `QDRANT_PORT` | `6333` | Qdrant port |
 
-Without `OPENAI_API_KEY`, a deterministic local embedding fallback is used.
+Semantic indexing uses deterministic local embeddings in Phase 1, so no external embedding provider is required.
 
 ---
 

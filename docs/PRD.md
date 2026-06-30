@@ -299,7 +299,7 @@ Set funding goal → Browse / search scholarships
 |----|-------------|--------|
 | NFR-R1 | Uptime | 99.5% (MVP) → 99.9% (GA) |
 | NFR-R2 | Database backups | Daily, 30-day retention |
-| NFR-R3 | Graceful degradation if Qdrant/OpenAI unavailable | Fallback to keyword search |
+| NFR-R3 | Graceful degradation if Qdrant/Gemini unavailable | Fallback to keyword search or context-grounded summaries |
 
 ### Security & Privacy
 
@@ -354,7 +354,7 @@ Set funding goal → Browse / search scholarships
 | **Applications** | Create, update, track status, basic dashboard |
 | **AI** | Basic chat guidance (profile-aware, no SOP yet) |
 | **Data** | 500+ universities (US, UK, Canada, Australia, Germany); 200+ scholarships |
-| **Platform** | Web app; Docker dev environment; API docs |
+| **Platform** | Web app; local development environment; API docs |
 
 ### Out of Scope (MVP)
 
@@ -483,7 +483,7 @@ Set funding goal → Browse / search scholarships
 
 | Milestone | Deliverables |
 |-----------|--------------|
-| **Platform foundation** | Monorepo, Docker, auth, profiles, REST APIs |
+| **Platform foundation** | Monorepo, auth, profiles, REST APIs |
 | **University Discovery Engine** | Schema, filter/search, semantic search, Qdrant, ranking, recommend API |
 | **Frontend shell** | Landing, auth, dashboard scaffold |
 | **Seed data** | 12+ universities; migration pipeline |
@@ -543,7 +543,7 @@ Set funding goal → Browse / search scholarships
 | AI hallucinations | RAG on catalog; guardrails; human review for SOP |
 | Low willingness to pay | Freemium wedge; prove value before paywall |
 | Regulatory (education advice) | Disclaimers; not a licensed counselor |
-| High OpenAI costs | Caching, smaller models for simple queries, usage caps on free tier |
+| High AI costs | Gemini usage controls, caching, and usage caps on free tier |
 
 ### Open Questions
 

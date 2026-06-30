@@ -1,8 +1,10 @@
 from uuid import UUID
 
 from fastapi import HTTPException, status
+from sqlalchemy import func, or_, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from app.models.scholarship import Scholarship
 from app.repositories.scholarship import ScholarshipRepository
 from app.schemas.common import PaginatedResponse
 from app.schemas.scholarship import ScholarshipResponse
@@ -27,9 +29,24 @@ class ScholarshipService:
             limit=limit,
         )
         items = [ScholarshipResponse.model_validate(s) for s in scholarships]
+
+        # Get true total for accurate pagination
+        count_stmt = select(func.count()).select_from(Scholarship).where(Scholarship.is_active.is_(True))
+        if country:
+            count_stmt = count_stmt.where(Scholarship.country.ilike(f"%{country}%"))
+        if query:
+            count_stmt = count_stmt.where(
+                or_(
+                    Scholarship.title.ilike(f"%{query}%"),
+                    Scholarship.provider.ilike(f"%{query}%"),
+                )
+            )
+        total_result = await self.scholarship_repo.db.execute(count_stmt)
+        total = total_result.scalar_one()
+
         return PaginatedResponse(
             items=items,
-            total=len(items),
+            total=total,
             skip=skip,
             limit=limit,
         )

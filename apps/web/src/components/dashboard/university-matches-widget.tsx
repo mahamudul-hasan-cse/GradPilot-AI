@@ -11,7 +11,13 @@ import { useUniversityMatches } from "@/hooks/use-queries";
 
 export function UniversityMatchesWidget() {
   const { data, isLoading, isError } = useUniversityMatches();
-  const matches = data?.recommendations ?? [];
+  const matches = data
+    ? [
+        ...data.recommendations.safe,
+        ...data.recommendations.target,
+        ...data.recommendations.ambitious,
+      ]
+    : [];
 
   return (
     <Card className="glass lg:col-span-2">
@@ -39,12 +45,12 @@ export function UniversityMatchesWidget() {
         ) : (
           <ul className="space-y-3" role="list">
             {matches.slice(0, 4).map((m) => (
-              <li key={m.university_id} className="flex items-center justify-between rounded-lg border p-3">
+              <li key={m.university.id} className="flex items-center justify-between rounded-lg border p-3">
                 <div>
-                  <p className="font-medium text-sm">{m.university_name}</p>
-                  <p className="text-xs text-muted-foreground">{m.country}</p>
+                  <p className="font-medium text-sm">{m.university.name}</p>
+                  <p className="text-xs text-muted-foreground">{m.university.country}</p>
                 </div>
-                <Badge variant="secondary">{Math.round(m.match_score * 100)}% match</Badge>
+                <Badge variant="secondary">{Math.round(m.score_breakdown.recommendation_score)}% match</Badge>
               </li>
             ))}
           </ul>

@@ -3,6 +3,7 @@
 import {
   Bell,
   Bot,
+  CalendarCheck,
   ChevronLeft,
   FileText,
   FolderOpen,
@@ -34,6 +35,7 @@ const ICONS = {
   FileText,
   GitBranch,
   Bell,
+  CalendarCheck,
   Settings,
 } as const;
 

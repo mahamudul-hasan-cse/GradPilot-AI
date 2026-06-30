@@ -9,7 +9,7 @@ import { useProfileAnalysis } from "@/hooks/use-queries";
 
 export function ReadinessWidget() {
   const { data, isLoading, isError } = useProfileAnalysis();
-  const score = data?.readiness_score ?? 0;
+  const score = data?.admission_readiness_score ?? 0;
 
   return (
     <Card className="glass">

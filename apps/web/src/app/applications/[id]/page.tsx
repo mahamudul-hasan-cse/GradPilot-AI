@@ -34,6 +34,7 @@ export default function ApplicationDetailPage() {
 
   const workspace = data;
   const app = workspace?.application;
+  const progress = workspace?.progress.progress_percent ?? 0;
 
   return (
     <AppShell
@@ -43,9 +44,9 @@ export default function ApplicationDetailPage() {
       <div className="mb-6">
         <div className="flex items-center justify-between mb-2">
           <span className="text-sm font-medium">Overall Progress</span>
-          <span className="text-sm text-muted-foreground">{workspace?.progress_percent ?? 0}%</span>
+          <span className="text-sm text-muted-foreground">{progress}%</span>
         </div>
-        <Progress value={workspace?.progress_percent ?? 0} aria-label="Application progress" />
+        <Progress value={progress} aria-label="Application progress" />
       </div>
 
       <Tabs defaultValue="tasks">

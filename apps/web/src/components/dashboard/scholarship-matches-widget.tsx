@@ -11,7 +11,7 @@ import { useScholarshipMatches } from "@/hooks/use-queries";
 
 export function ScholarshipMatchesWidget() {
   const { data, isLoading, isError } = useScholarshipMatches();
-  const matches = data?.recommendations ?? [];
+  const matches = data?.matches ?? [];
 
   return (
     <Card className="glass lg:col-span-2">
@@ -39,9 +39,9 @@ export function ScholarshipMatchesWidget() {
         ) : (
           <ul className="space-y-3" role="list">
             {matches.slice(0, 4).map((m) => (
-              <li key={m.scholarship_id} className="flex items-center justify-between rounded-lg border p-3">
-                <p className="font-medium text-sm line-clamp-1">{m.title}</p>
-                <Badge variant="secondary">{Math.round(m.match_score * 100)}%</Badge>
+              <li key={m.scholarship.id} className="flex items-center justify-between rounded-lg border p-3">
+                <p className="font-medium text-sm line-clamp-1">{m.scholarship.title}</p>
+                <Badge variant="secondary">{Math.round(m.score.scholarship_score)}%</Badge>
               </li>
             ))}
           </ul>

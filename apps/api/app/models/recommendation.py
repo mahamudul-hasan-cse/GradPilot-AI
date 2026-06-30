@@ -19,7 +19,7 @@ class RecommendationHistory(UUIDPrimaryKeyMixin, TimestampMixin, Base):
         ForeignKey("users.id", ondelete="SET NULL"),
         index=True,
     )
-    cache_key: Mapped[str | None] = mapped_column(String(64), index=True)
+    cache_key: Mapped[str | None] = mapped_column(String(128), index=True)
     request_payload: Mapped[dict[str, Any]] = mapped_column(JSON, nullable=False)
     response_summary: Mapped[dict[str, Any]] = mapped_column(JSON, nullable=False)
     total_score_avg: Mapped[float | None] = mapped_column(Numeric(5, 2))

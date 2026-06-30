@@ -1,21 +1,26 @@
 from functools import lru_cache
+from pathlib import Path
 from typing import List
 
-from pydantic import Field, field_validator
+from pydantic import AliasChoices, Field, field_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
+
+ROOT_DIR = Path(__file__).resolve().parents[4]
+API_DIR = Path(__file__).resolve().parents[2]
 
 
 class Settings(BaseSettings):
     model_config = SettingsConfigDict(
-        env_file=".env",
+        env_file=(ROOT_DIR / ".env", API_DIR / ".env"),
         env_file_encoding="utf-8",
         case_sensitive=False,
         extra="ignore",
     )
 
     app_name: str = Field(default="GradPilot AI", alias="APP_NAME")
-    app_env: str = Field(default="development", alias="APP_ENV")
+    app_env: str = Field(default="development", validation_alias=AliasChoices("ENVIRONMENT", "APP_ENV"))
     debug: bool = Field(default=True, alias="DEBUG")
+    log_level: str = Field(default="INFO", alias="LOG_LEVEL")
 
     api_host: str = Field(default="0.0.0.0", alias="API_HOST")
     api_port: int = Field(default=8000, alias="API_PORT")
@@ -33,9 +38,13 @@ class Settings(BaseSettings):
     database_url: str | None = Field(default=None, alias="DATABASE_URL")
     database_url_sync: str | None = Field(default=None, alias="DATABASE_URL_SYNC")
 
-    jwt_secret_key: str = Field(
+    secret_key: str = Field(
         default="dev-secret-change-in-production",
-        alias="JWT_SECRET_KEY",
+        validation_alias=AliasChoices("SECRET_KEY", "JWT_SECRET", "JWT_SECRET_KEY"),
+    )
+    jwt_secret_key: str | None = Field(
+        default=None,
+        validation_alias=AliasChoices("JWT_SECRET", "JWT_SECRET_KEY", "SECRET_KEY"),
     )
     jwt_algorithm: str = Field(default="HS256", alias="JWT_ALGORITHM")
     jwt_access_token_expire_minutes: int = Field(
@@ -45,11 +54,10 @@ class Settings(BaseSettings):
         default=7, alias="JWT_REFRESH_TOKEN_EXPIRE_DAYS"
     )
 
-    openai_api_key: str | None = Field(default=None, alias="OPENAI_API_KEY")
     qdrant_host: str = Field(default="localhost", alias="QDRANT_HOST")
     qdrant_port: int = Field(default=6333, alias="QDRANT_PORT")
     qdrant_collection: str = Field(default="gradpilot_embeddings", alias="QDRANT_COLLECTION")
-    embedding_model: str = Field(default="text-embedding-3-small", alias="EMBEDDING_MODEL")
+    embedding_model: str = Field(default="fallback", alias="EMBEDDING_MODEL")
 
     ingestion_user_agent: str = Field(
         default="GradPilotBot/1.0 (+https://gradpilot.ai/bot)",
@@ -68,15 +76,12 @@ class Settings(BaseSettings):
     redis_enabled: bool = Field(default=True, alias="REDIS_ENABLED")
     recommendation_cache_ttl_seconds: int = Field(default=3600, alias="RECOMMENDATION_CACHE_TTL_SECONDS")
 
-    llm_provider: str = Field(default="openai", alias="LLM_PROVIDER")
-    llm_model: str = Field(default="gpt-4o-mini", alias="LLM_MODEL")
+    llm_model: str = Field(default="gemini-1.5-flash", alias="LLM_MODEL")
     gemini_api_key: str | None = Field(default=None, alias="GEMINI_API_KEY")
-    gemini_model: str = Field(default="gemini-1.5-flash", alias="GEMINI_MODEL")
-    local_llm_url: str | None = Field(default=None, alias="LOCAL_LLM_URL")
-    local_llm_model: str = Field(default="llama3", alias="LOCAL_LLM_MODEL")
+    gemini_model: str = Field(default="gemini-2.5-flash", alias="GEMINI_MODEL")
     knowledge_memory_ttl_seconds: int = Field(default=86400, alias="KNOWLEDGE_MEMORY_TTL_SECONDS")
 
-    document_upload_dir: str = Field(default="uploads", alias="DOCUMENT_UPLOAD_DIR")
+    document_upload_dir: str = Field(default="uploads", validation_alias=AliasChoices("UPLOAD_DIR", "DOCUMENT_UPLOAD_DIR"))
     document_ocr_provider: str = Field(default="fallback", alias="DOCUMENT_OCR_PROVIDER")
 
     @field_validator("cors_origins", mode="before")
@@ -93,6 +98,8 @@ class Settings(BaseSettings):
     @property
     def async_database_url(self) -> str:
         if self.database_url:
+            if self.database_url.startswith("postgresql://"):
+                return self.database_url.replace("postgresql://", "postgresql+asyncpg://", 1)
             return self.database_url
         return (
             f"postgresql+asyncpg://{self.postgres_user}:{self.postgres_password}"
@@ -103,6 +110,12 @@ class Settings(BaseSettings):
     def sync_database_url(self) -> str:
         if self.database_url_sync:
             return self.database_url_sync
+        if self.database_url:
+            if self.database_url.startswith("postgresql+asyncpg://"):
+                return self.database_url.replace("postgresql+asyncpg://", "postgresql+psycopg2://", 1)
+            if self.database_url.startswith("postgresql://"):
+                return self.database_url.replace("postgresql://", "postgresql+psycopg2://", 1)
+            return self.database_url
         return (
             f"postgresql+psycopg2://{self.postgres_user}:{self.postgres_password}"
             f"@{self.postgres_host}:{self.postgres_port}/{self.postgres_db}"
@@ -111,6 +124,10 @@ class Settings(BaseSettings):
     @property
     def is_production(self) -> bool:
         return self.app_env.lower() == "production"
+
+    @property
+    def effective_jwt_secret(self) -> str:
+        return self.jwt_secret_key or self.secret_key
 
 
 @lru_cache

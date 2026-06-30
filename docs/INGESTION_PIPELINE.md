@@ -45,23 +45,25 @@ Source Catalog (JSON/API)
 | Incremental | Every 6 hours (`0 */6 * * *`) | 50 stale sources |
 | Full | Weekly Sunday 2am (`0 2 * * 0`) | 200 sources |
 
-Run via the **worker** service:
+Run from the backend virtual environment:
 
 ```bash
-docker compose up worker -d
+cd apps/api
+python -m app.ingestion.scheduler
 ```
 
 ## Quick Start
 
 ```bash
 # 1. Apply migration
-docker compose exec api alembic upgrade head
+cd apps/api
+alembic upgrade head
 
 # 2. Load source catalog (20 universities)
-docker compose exec api python scripts/load_sources.py
+python scripts/load_sources.py
 
 # 3. Run ingestion manually
-docker compose exec api python -c "
+python -c "
 import asyncio
 from app.db.session import AsyncSessionLocal
 from app.ingestion.orchestrator import IngestionOrchestrator

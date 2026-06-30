@@ -25,6 +25,8 @@ EVENT_TIMELINE_MAP: dict[str, tuple[str, str]] = {
     TwinEventType.DEADLINE_PASSED: ("deadlines", "Deadline passed"),
     TwinEventType.DEADLINE_APPROACHING: ("deadlines", "Deadline approaching"),
     TwinEventType.ANALYSIS_COMPLETED: ("intelligence", "Profile analysis completed"),
+    TwinEventType.PLAN_GENERATED: ("planning", "Study plan generated"),
+    TwinEventType.PLAN_UPDATED: ("planning", "Study plan updated"),
     TwinEventType.TWIN_REFRESHED: ("system", "Digital twin refreshed"),
     TwinEventType.KNOWLEDGE_QUERY: ("knowledge", "Knowledge query"),
 }

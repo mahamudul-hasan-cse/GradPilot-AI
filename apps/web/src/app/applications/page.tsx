@@ -14,10 +14,26 @@ import { useApplications } from "@/hooks/use-queries";
 
 const STATUS_VARIANT: Record<string, "default" | "secondary" | "outline" | "success" | "warning"> = {
   planning: "outline",
-  in_progress: "warning",
+  preparing: "warning",
+  ready: "warning",
   submitted: "default",
+  interview: "default",
   accepted: "success",
   rejected: "secondary",
+  deferred: "warning",
+  withdrawn: "secondary",
+};
+
+const STATUS_PROGRESS: Record<string, number> = {
+  planning: 15,
+  preparing: 45,
+  ready: 70,
+  submitted: 85,
+  interview: 90,
+  accepted: 100,
+  rejected: 100,
+  deferred: 80,
+  withdrawn: 100,
 };
 
 export default function ApplicationsPage() {
@@ -60,7 +76,7 @@ export default function ApplicationsPage() {
                   </CardDescription>
                 </CardHeader>
                 <CardContent>
-                  <Progress value={app.status === "submitted" ? 100 : app.status === "in_progress" ? 60 : 20} />
+                  <Progress value={app.progress_percent ?? STATUS_PROGRESS[app.status] ?? 20} />
                 </CardContent>
               </Card>
             </Link>

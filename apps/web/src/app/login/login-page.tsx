@@ -4,7 +4,8 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { GraduationCap, Loader2 } from "lucide-react";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
-import { signIn } from "next-auth/react";
+import { signIn, signOut, useSession } from "next-auth/react";
+import { useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
 import { z } from "zod";
@@ -25,6 +26,15 @@ export default function LoginPage() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const callbackUrl = searchParams.get("callbackUrl") ?? "/dashboard";
+  const { data: session } = useSession();
+
+  // If a broken/expired session cookie is sitting in the browser, clear it
+  // before the user tries to log in so it can't trigger a redirect loop.
+  useEffect(() => {
+    if (session?.error) {
+      signOut({ redirect: false });
+    }
+  }, [session?.error]);
 
   const {
     register,

@@ -93,8 +93,8 @@ class TestFingerprint:
         h1 = build_fingerprint_hash("MIT", "United States", "https://www.mit.edu")
         h2 = build_fingerprint_hash("MIT", "United States", "https://mit.edu")
         assert h1 == h2
-
     def test_different_university_different_hash(self):
         h1 = build_fingerprint_hash("MIT", "United States", "https://www.mit.edu")
         h2 = build_fingerprint_hash("Oxford", "United Kingdom", "https://www.ox.ac.uk")
         assert h1 != h2
+

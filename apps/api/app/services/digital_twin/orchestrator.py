@@ -34,6 +34,19 @@ class AIOrchestrator:
 
     def _setup_subscribers(self) -> None:
         self.event_bus.subscribe("*", self._on_event_timeline)
+        self.event_bus.subscribe("*", self._on_planner_regenerate)
+
+    async def _on_planner_regenerate(self, event: TwinEventMessage) -> None:
+        from app.services.ai_planner.service import PlannerService
+        from app.services.digital_twin.types import PLANNER_REGENERATION_EVENTS
+
+        if event.event_type not in PLANNER_REGENERATION_EVENTS:
+            return
+        try:
+            planner = PlannerService(self.db)
+            await planner.regenerate(event.user_id, reason=f"event:{event.event_type}")
+        except Exception as exc:
+            logger.warning("Planner auto-regeneration failed for %s: %s", event.user_id, exc)
 
     async def _on_event_timeline(self, event: TwinEventMessage) -> None:
         await self.timeline.record_from_event(event)

@@ -23,6 +23,12 @@ class TwinEventType(StrEnum):
     DEADLINE_PASSED = "deadline.passed"
     DEADLINE_APPROACHING = "deadline.approaching"
     ANALYSIS_COMPLETED = "analysis.completed"
+    PLAN_GENERATED = "planner.generated"
+    PLAN_UPDATED = "planner.updated"
+    SOP_CREATED = "sop.created"
+    SOP_UPDATED = "sop.updated"
+    SOP_EXPORTED = "sop.exported"
+    SOP_SCORED = "sop.scored"
     TWIN_REFRESHED = "twin.refreshed"
     KNOWLEDGE_QUERY = "knowledge.query"
 
@@ -32,6 +38,18 @@ REFRESH_TRIGGER_EVENTS = frozenset({
     TwinEventType.DOCUMENT_UPLOADED,
     TwinEventType.APPLICATION_SUBMITTED,
     TwinEventType.ANALYSIS_COMPLETED,
+})
+
+PLANNER_REGENERATION_EVENTS = frozenset({
+    TwinEventType.PROFILE_UPDATED,
+    TwinEventType.DOCUMENT_UPLOADED,
+    TwinEventType.DOCUMENT_VALIDATED,
+    TwinEventType.APPLICATION_CREATED,
+    TwinEventType.APPLICATION_SUBMITTED,
+    TwinEventType.ANALYSIS_COMPLETED,
+    TwinEventType.RECOMMENDATION_GENERATED,
+    TwinEventType.SCHOLARSHIP_MATCHED,
+    TwinEventType.DEADLINE_APPROACHING,
 })
 
 

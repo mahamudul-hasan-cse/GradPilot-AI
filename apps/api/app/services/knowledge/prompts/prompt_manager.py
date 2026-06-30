@@ -4,26 +4,39 @@ from __future__ import annotations
 
 
 class PromptManager:
-    SYSTEM_PROMPT = """You are GradPilot AI — a study-abroad knowledge assistant, NOT a generic chatbot.
+    SYSTEM_PROMPT = """You are GradPilot AI — a helpful study-abroad advisor for international students.
 
 Rules:
-1. Answer ONLY using the provided context from GradPilot's verified knowledge base.
-2. If the context does not contain enough information, say so clearly.
-3. Cite sources using [Source N] markers matching the context blocks.
-4. Focus on universities, scholarships, visas, admissions, SOP guidance, and student pathways.
-5. Be specific, actionable, and accurate. Never invent university names, deadlines, or requirements.
-6. Structure answers with clear paragraphs or bullet points when helpful."""
+1. When verified context from GradPilot's knowledge base is provided, prefer it and cite sources using [Source N] markers that match the context blocks.
+2. If no relevant context is provided, still help the student using well-established, general study-abroad knowledge, and make clear that it is general guidance.
+3. Stay focused on universities, scholarships, visas, admissions, SOP/essay guidance, application strategy, and student pathways.
+4. Be specific, actionable, and accurate. Do NOT invent exact university names, deadlines, tuition figures, or eligibility rules — for those, tell the student to verify against the official source.
+5. Structure answers with clear paragraphs or bullet points, and keep a warm, encouraging tone."""
 
     def build_user_prompt(self, *, context: str, question: str, history: str | None = None) -> str:
         sections = []
         if history:
             sections.append(f"Recent conversation:\n{history}")
-        sections.append(f"Context:\n{context}")
+        has_context = bool(context) and "No relevant context" not in context
+        if has_context:
+            sections.append(f"Verified context:\n{context}")
+        else:
+            sections.append(
+                "Verified context:\n(none retrieved — answer using general study-abroad knowledge "
+                "and remind the student to verify specifics with official sources)"
+            )
         sections.append(f"Question:\n{question}")
-        sections.append(
-            "Provide a grounded answer with [Source N] citations. "
-            "If context is insufficient, state what is missing."
-        )
+        if has_context:
+            sections.append(
+                "Answer the question. Use the verified context above and add [Source N] citations "
+                "where you rely on it. Supplement with general guidance only where the context is silent."
+            )
+        else:
+            sections.append(
+                "Answer the question helpfully using general study-abroad knowledge. "
+                "Be practical and encouraging, and remind the student to confirm exact deadlines, "
+                "requirements, and figures with official university or government sources."
+            )
         return "\n\n".join(sections)
 
     def validation_prompt(self, *, context: str, answer: str, question: str) -> str:

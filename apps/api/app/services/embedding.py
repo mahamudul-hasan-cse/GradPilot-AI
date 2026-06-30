@@ -1,11 +1,13 @@
-"""Embedding generation for university semantic search."""
+"""Embedding generation for semantic search.
+
+Phase 1 uses deterministic local embeddings so local development and production
+do not depend on OpenAI. The interface is unchanged for retrieval code.
+"""
 
 import hashlib
 import math
 import re
 from abc import ABC, abstractmethod
-
-from app.core.config import settings
 
 VECTOR_SIZE = 384
 
@@ -40,31 +42,5 @@ class FallbackEmbeddingProvider(EmbeddingProvider):
         return _normalize(vec)
 
 
-class OpenAIEmbeddingProvider(EmbeddingProvider):
-    def __init__(self) -> None:
-        from langchain_openai import OpenAIEmbeddings
-
-        self._client = OpenAIEmbeddings(
-            model=settings.embedding_model,
-            openai_api_key=settings.openai_api_key,
-        )
-        self._fallback = FallbackEmbeddingProvider()
-
-    @property
-    def vector_size(self) -> int:
-        return VECTOR_SIZE
-
-    def embed(self, text: str) -> list[float]:
-        try:
-            vector = self._client.embed_query(text)
-            if len(vector) != VECTOR_SIZE:
-                return _normalize(vector[:VECTOR_SIZE] + [0.0] * max(0, VECTOR_SIZE - len(vector)))
-            return _normalize(vector)
-        except Exception:
-            return self._fallback.embed(text)
-
-
 def get_embedding_provider() -> EmbeddingProvider:
-    if settings.openai_api_key:
-        return OpenAIEmbeddingProvider()
     return FallbackEmbeddingProvider()

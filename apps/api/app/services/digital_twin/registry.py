@@ -92,3 +92,16 @@ def bootstrap_registry() -> None:
         description="Unified student state and AI orchestration",
         capabilities=["aggregate", "orchestrate", "refresh", "timeline"],
     )
+    ServiceRegistry.register(
+        "ai_planner",
+        description="Proactive study-abroad action plans from Digital Twin",
+        version="1.0.0",
+        capabilities=[
+            "prioritize",
+            "schedule",
+            "daily_digest",
+            "weekly_planning",
+            "risk_alerts",
+            "readiness_timeline",
+        ],
+    )

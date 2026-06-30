@@ -1,8 +1,10 @@
 from uuid import UUID
 
 from fastapi import HTTPException, status
+from sqlalchemy import func, or_, String, cast, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from app.models.university import University
 from app.repositories.university import UniversityRepository
 from app.schemas.common import PaginatedResponse
 from app.schemas.university import ProgramResponse, UniversityDetailResponse, UniversityResponse
@@ -27,9 +29,28 @@ class UniversityService:
             limit=limit,
         )
         items = [UniversityResponse.model_validate(u) for u in universities]
+
+        # Get true total for accurate pagination
+        count_stmt = select(func.count()).select_from(University).where(University.is_active.is_(True))
+        if country:
+            count_stmt = count_stmt.where(University.country.ilike(f"%{country}%"))
+        if query:
+            pattern = f"%{query}%"
+            count_stmt = count_stmt.where(
+                or_(
+                    University.name.ilike(pattern),
+                    University.city.ilike(pattern),
+                    University.country.ilike(pattern),
+                    University.search_text.ilike(pattern),
+                    cast(University.programs, String).ilike(pattern),
+                )
+            )
+        total_result = await self.university_repo.db.execute(count_stmt)
+        total = total_result.scalar_one()
+
         return PaginatedResponse(
             items=items,
-            total=len(items),
+            total=total,
             skip=skip,
             limit=limit,
         )

@@ -47,6 +47,7 @@ class TwinAggregator:
             "profile_analysis": self._serialize_profile_analysis(profile_analysis),
             "universities": uni_rec,
             "scholarships": sch_rec,
+            "study_plan": await self._latest_study_plan(user_id),
         }
 
         universities = self._extract_universities(applications, uni_rec)
@@ -278,6 +279,19 @@ class TwinAggregator:
         if sch_rec:
             items.append({"source": "recommendation", "summary": sch_rec})
         return items
+
+    async def _latest_study_plan(self, user_id: UUID) -> dict | None:
+        from app.repositories.ai_planner import PlannerHistoryRepository
+
+        history = await PlannerHistoryRepository(self.db).get_latest_for_user(user_id)
+        if not history:
+            return None
+        return {
+            "plan_id": str(history.id),
+            "priority_score": float(history.priority_score) if history.priority_score else None,
+            "twin_version": history.twin_version,
+            "generated_at": history.created_at.isoformat() if history.created_at else None,
+        }
 
     def profile_to_analysis_request(self, profile: StudentProfile) -> dict:
         gpa = float(profile.gpa or 3.0)

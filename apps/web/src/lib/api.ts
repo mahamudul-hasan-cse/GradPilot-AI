@@ -39,6 +39,10 @@ async function request<T>(path: string, options: RequestOptions = {}): Promise<T
 
   if (!response.ok) {
     const errorBody = await response.json().catch(() => ({}));
+    if (response.status === 401 && typeof window !== "undefined") {
+      const callbackUrl = encodeURIComponent(window.location.pathname + window.location.search);
+      window.location.assign(`/login?callbackUrl=${callbackUrl}`);
+    }
     const message =
       typeof errorBody.detail === "string"
         ? errorBody.detail
@@ -59,40 +63,118 @@ export type StudentProfile = {
   id: string;
   user_id: string;
   nationality: string | null;
+  current_country: string | null;
+  education_level: string | null;
   target_countries: string[] | null;
   target_degree: string | null;
   field_of_study: string | null;
   gpa: number | null;
-  ielts_score: number | null;
-  toefl_score: number | null;
-  gre_score: number | null;
+  gpa_scale: number | null;
+  test_scores: Record<string, number | string | null> | null;
+  work_experience_years: number | null;
+  budget_min: number | null;
   budget_max: number | null;
+  budget_currency: string | null;
   bio: string | null;
+  created_at: string;
+  updated_at: string;
 };
 
 export type ProfileAnalysis = {
-  readiness_score: number;
-  academic_score: number;
-  language_score: number;
-  experience_score: number;
-  recommendations: string[];
+  admission_readiness_score: number;
+  scholarship_readiness_score: number;
+  employability_score: number;
   strengths: string[];
-  gaps: string[];
+  weaknesses: string[];
+  missing_requirements: string[];
+  recommended_actions: string[];
+  recommended_countries: string[];
+  recommended_university_tier: string;
+  profile_summary: string;
+  score_explanations: Record<string, { score: number; label: string; explanation: string; factors: Record<string, number> }>;
 };
 
-export type UniversityRecommendation = {
-  university_id: string;
-  university_name: string;
-  country: string;
-  match_score: number;
-  reasons: string[];
+export type ProfileAnalysisRequest = {
+  cgpa: number;
+  ielts: number;
+  degree_level: string;
+  major: string;
+  country_preferences?: string[];
+  work_experience_years?: number;
+  has_research_experience?: boolean;
+  publications_count?: number;
+  certifications?: string[];
+  use_cache?: boolean;
 };
 
-export type ScholarshipRecommendation = {
-  scholarship_id: string;
-  title: string;
-  match_score: number;
-  reasons: string[];
+export type UniversityRecommendationRequest = {
+  cgpa: number;
+  ielts: number;
+  budget: number;
+  country_preference?: string | null;
+  major: string;
+  work_experience_years?: number;
+  has_research_experience?: boolean;
+  limit_per_tier?: number;
+  use_cache?: boolean;
+};
+
+export type RecommendedUniversity = {
+  university: University;
+  score_breakdown: {
+    academic_match: number;
+    language_match: number;
+    budget_match: number;
+    program_match: number;
+    scholarship_match: number;
+    recommendation_score: number;
+    tier: "safe" | "target" | "ambitious";
+  };
+  explanation: string;
+};
+
+export type UniversityRecommendationResponse = {
+  recommendations: {
+    safe: RecommendedUniversity[];
+    target: RecommendedUniversity[];
+    ambitious: RecommendedUniversity[];
+  };
+  total_candidates_evaluated: number;
+};
+
+export type ScholarshipRecommendationRequest = {
+  cgpa: number;
+  ielts: number;
+  degree_level: string;
+  major: string;
+  country_preference?: string | null;
+  has_research_experience?: boolean;
+  work_experience_years?: number;
+  nationality?: string | null;
+  min_score?: number;
+  limit?: number;
+  use_cache?: boolean;
+};
+
+export type MatchedScholarship = {
+  scholarship: Scholarship;
+  score: {
+    academic_match: number;
+    language_match: number;
+    degree_match: number;
+    country_match: number;
+    research_match: number;
+    work_experience_match: number;
+    scholarship_score: number;
+    eligibility_probability: number;
+    match_category: string;
+  };
+  explanation: string;
+};
+
+export type ScholarshipRecommendationResponse = {
+  matches: MatchedScholarship[];
+  total_candidates_evaluated: number;
 };
 
 export type ApplicationItem = {
@@ -103,13 +185,16 @@ export type ApplicationItem = {
   program_id: string | null;
   notes: string | null;
   deadline: string | null;
+  title?: string | null;
+  progress_percent?: number;
+  university?: University | null;
   created_at: string;
   updated_at: string;
 };
 
 export type ApplicationWorkspace = {
   application: ApplicationItem;
-  progress_percent: number;
+  progress: { progress_percent: number; breakdown: Record<string, unknown> };
   tasks: Array<{ id: string; title: string; status: string; due_date: string | null }>;
   deadlines: Array<{ id: string; title: string; due_date: string; is_completed: boolean }>;
   documents: Array<{ id: string; title: string; document_type: string; status: string }>;
@@ -138,7 +223,8 @@ export type DigitalTwin = {
 
 export type TimelineEntry = {
   id: string;
-  event_type: string;
+  event_type?: string;
+  category?: string;
   title: string;
   description: string | null;
   occurred_at: string;
@@ -146,6 +232,32 @@ export type TimelineEntry = {
 };
 
 export type ChatMessage = { role: string; content: string };
+export type ChatResponse = { answer: string; session_id: string | null; confidence: number; model: string };
+
+export type PlannerTask = {
+  id: string;
+  title: string;
+  description: string | null;
+  category: string;
+  task_type: string;
+  reason: string;
+  priority_score: number;
+  priority_rank: number | null;
+  status: string;
+  due_date: string | null;
+  scheduled_date: string | null;
+};
+
+export type PlannerPlan = {
+  plan_id: string;
+  priority_score: number;
+  todays_tasks: PlannerTask[];
+  tomorrows_tasks: PlannerTask[];
+  weekly_goals: Array<{ title: string; description: string | null; reason: string; due_date: string | null }>;
+  risk_alerts: Array<{ title: string; description: string | null; reason: string }>;
+  deadline_alerts: Array<{ title: string; description: string | null; reason: string }>;
+  generated_at: string;
+};
 
 export const api = {
   auth: {
@@ -159,11 +271,18 @@ export const api = {
   },
 
   profile: {
-    get: (token: string) => request<StudentProfile>("/profile", { token }),
+    get: async (token: string) => {
+      try {
+        return await request<StudentProfile>("/profile", { token });
+      } catch (error) {
+        if (error instanceof ApiError && error.status === 404) return null;
+        throw error;
+      }
+    },
     update: (token: string, data: Partial<StudentProfile>) =>
       request<StudentProfile>("/profile", { method: "PUT", body: data, token }),
-    analyze: (token: string) =>
-      request<ProfileAnalysis>("/profile/analyze", { method: "POST", token }),
+    analyze: (token: string, data: ProfileAnalysisRequest) =>
+      request<ProfileAnalysis>("/profile/analyze", { method: "POST", body: data, token }),
   },
 
   universities: {
@@ -195,16 +314,16 @@ export const api = {
   },
 
   recommendations: {
-    universities: (token: string, body?: { limit?: number }) =>
-      request<{ recommendations: UniversityRecommendation[] }>("/recommendations/universities", {
+    universities: (token: string, body: UniversityRecommendationRequest) =>
+      request<UniversityRecommendationResponse>("/recommendations/universities", {
         method: "POST",
-        body: body ?? {},
+        body,
         token,
       }),
-    scholarships: (token: string, body?: { limit?: number }) =>
-      request<{ recommendations: ScholarshipRecommendation[] }>("/recommendations/scholarships", {
+    scholarships: (token: string, body: ScholarshipRecommendationRequest) =>
+      request<ScholarshipRecommendationResponse>("/recommendations/scholarships", {
         method: "POST",
-        body: body ?? {},
+        body,
         token,
       }),
   },
@@ -214,7 +333,7 @@ export const api = {
     get: (token: string, id: string) => request<ApplicationItem>(`/applications/${id}`, { token }),
     workspace: (token: string, id: string) =>
       request<ApplicationWorkspace>(`/applications/${id}/workspace`, { token }),
-    create: (token: string, data: { university_id?: string; notes?: string }) =>
+    create: (token: string, data: { university_id?: string; title?: string; notes?: string | null; status?: string; deadline?: string }) =>
       request<ApplicationItem>("/applications", { method: "POST", body: data, token }),
     progress: (token: string, id: string) =>
       request<{ progress_percent: number }>(`/applications/${id}/progress`, { token }),
@@ -242,9 +361,14 @@ export const api = {
       request<{ message: string }>("/student/refresh", { method: "POST", token }),
   },
 
+  planner: {
+    plan: (token: string) => request<PlannerPlan>("/planner/plan", { token }),
+    tasksToday: (token: string) => request<PlannerTask[]>("/planner/tasks/today", { token }),
+  },
+
   ai: {
     chat: (token: string, message: string, sessionId?: string) =>
-      request<{ response: string; session_id: string }>("/ai/chat", {
+      request<ChatResponse>("/ai/chat", {
         method: "POST",
         body: { message, session_id: sessionId },
         token,

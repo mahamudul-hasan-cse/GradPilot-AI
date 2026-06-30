@@ -19,7 +19,7 @@ class ProfileAnalysis(UUIDPrimaryKeyMixin, TimestampMixin, Base):
         ForeignKey("users.id", ondelete="SET NULL"),
         index=True,
     )
-    cache_key: Mapped[str | None] = mapped_column(String(64), index=True)
+    cache_key: Mapped[str | None] = mapped_column(String(128), index=True)
     analyzer_type: Mapped[str] = mapped_column(String(50), default="rule_based", index=True)
     request_payload: Mapped[dict[str, Any]] = mapped_column(JSON, nullable=False)
     response_summary: Mapped[dict[str, Any]] = mapped_column(JSON, nullable=False)

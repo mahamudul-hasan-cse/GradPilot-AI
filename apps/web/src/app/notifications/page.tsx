@@ -12,7 +12,9 @@ import { useAppStore } from "@/stores/app-store";
 
 const ICON_MAP: Record<string, typeof Bell> = {
   document: FileText,
+  documents: FileText,
   application: GraduationCap,
+  applications: GraduationCap,
   profile: Sparkles,
   default: Bell,
 };
@@ -37,7 +39,8 @@ export default function NotificationsPage() {
       ) : (
         <div className="space-y-3 max-w-2xl" role="list" aria-label="Notifications">
           {entries.map((entry) => {
-            const Icon = ICON_MAP[entry.event_type.split(".")[0] ?? ""] ?? ICON_MAP.default;
+            const eventKey = (entry.category ?? entry.event_type ?? "").split(".")[0];
+            const Icon = ICON_MAP[eventKey] ?? ICON_MAP.default;
             return (
               <Card key={entry.id} role="listitem">
                 <CardHeader className="flex flex-row items-start gap-4 pb-2">

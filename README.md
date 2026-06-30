@@ -1,299 +1,250 @@
 # GradPilot AI
 
-Production-grade SaaS platform helping students study abroad with university discovery, scholarship search, AI guidance, SOP assistance, and application tracking.
+GradPilot is an AI-powered study abroad platform for international students. Students can build a profile, upload documents, discover universities and scholarships, chat with an AI advisor, generate SOP drafts, plan their application timeline, and track applications — all from one dashboard.
 
-## Architecture
+Runs locally with **Python + FastAPI**, **Next.js**, **PostgreSQL**, and **Google Gemini** (no Docker required).
+
+---
+
+## Features
+
+| Area | What students can do |
+|------|----------------------|
+| **Profile** | Save GPA, IELTS, field of study, goals; get readiness scores |
+| **Universities** | Search 35+ real universities, filter by country, view details |
+| **Scholarships** | Browse 40+ real scholarships with funding type and deadlines |
+| **AI Advisor** | Chat with Gemini-powered study abroad guidance |
+| **Planner** | Personalized tasks linked to profile scores |
+| **Timeline** | Visual journey of profile, documents, and application events |
+| **Applications** | Kanban tracker for application stages |
+| **Documents** | Upload IELTS, CV, transcripts |
+
+---
+
+## Tech stack
+
+| Layer | Stack |
+|-------|--------|
+| Frontend | Next.js 15, TypeScript, TailwindCSS, React Query, Zustand, NextAuth |
+| Backend | FastAPI, SQLAlchemy, Alembic, PostgreSQL |
+| AI | Google Gemini API (`gemini-2.5-flash`) |
+| Production DB | [Neon PostgreSQL](https://neon.tech) (recommended) |
+
+---
+
+## Project structure
 
 ```
 GradPilot-AI/
 ├── apps/
-│   ├── api/          # FastAPI backend (clean architecture)
-│   └── web/          # Next.js 15 frontend
-├── packages/
-│   └── shared/       # Shared TypeScript types
-├── docker-compose.yml
-├── .env.example
+│   ├── api/          # FastAPI backend
+│   └── web/          # Next.js frontend
+├── packages/shared/  # Shared TypeScript types
+├── docs/             # Product & technical documentation
+├── scripts/          # Setup & run scripts (Windows + Unix)
+├── uploads/          # Local document uploads (gitignored)
+├── .env.example      # Environment template (safe to commit)
 └── README.md
 ```
 
-### Backend layers (`apps/api`)
+---
 
-| Layer | Responsibility |
-|-------|----------------|
-| `api/v1/endpoints` | HTTP routes, request/response mapping |
-| `services` | Business logic |
-| `repositories` | Data access (repository pattern) |
-| `models` | SQLAlchemy ORM entities |
-| `schemas` | Pydantic DTOs |
-| `core` | Config, security, dependencies |
+## Quick start
 
-API versioning: all routes under `/api/v1`.
+### Prerequisites
 
-## Tech stack
+- Python 3.12+
+- Node.js 20+
+- PostgreSQL 15+ (local install or Neon cloud)
+- A [Google Gemini API key](https://aistudio.google.com/apikey)
 
-- **Frontend:** Next.js 15, TypeScript, Tailwind CSS, Shadcn UI
-- **Backend:** FastAPI, PostgreSQL, SQLAlchemy, Alembic, JWT
-- **AI (foundation):** LangChain, LangGraph, OpenAI, Qdrant
-- **Infra:** Docker, Docker Compose
-
-## Prerequisites
-
-- Docker & Docker Compose
-- Node.js 20+ (local frontend dev)
-- Python 3.12+ (local backend dev)
-
-## Quick start (Docker)
+### 1. Clone and configure secrets
 
 ```bash
-# 1. Clone and configure
+git clone https://github.com/mahamudul-hasan-cse/GradPilot-AI.git
+cd GradPilot-AI
+```
+
+Copy environment templates and **fill in your own values**:
+
+```bash
+# Root backend config
 cp .env.example .env
-# Edit .env — set JWT_SECRET_KEY and OPENAI_API_KEY
 
-# 2. Start all services
-docker compose up --build
-
-# 3. Access
-# Frontend:  http://localhost:3000
-# API:       http://localhost:8000
-# API docs:  http://localhost:8000/docs
-# Qdrant:    http://localhost:6333
+# Frontend config
+cp apps/web/.env.example apps/web/.env.local
 ```
 
-Migrations run automatically on API container startup.
+Edit `.env` and set at minimum:
 
-### Seed sample data
+- `DATABASE_URL` — your PostgreSQL connection string
+- `SECRET_KEY`, `JWT_SECRET`, `AUTH_SECRET` — long random strings
+- `GEMINI_API_KEY` — your Gemini API key
+
+> **Important:** `AUTH_SECRET` in root `.env` must match `AUTH_SECRET` in `apps/web/.env.local`.
+
+### 2. One-time setup
+
+**Windows**
+
+```bat
+scripts\setup_backend.bat
+scripts\setup_frontend.bat
+```
+
+**macOS / Linux**
 
 ```bash
-docker compose exec api python scripts/seed_universities.py
+bash scripts/setup_backend.sh
+bash scripts/setup_frontend.sh
 ```
 
-See [University Discovery API](docs/UNIVERSITY_DISCOVERY.md) for filter, search, semantic search, and recommendation endpoints.
-
-See [Scholarship Matching Engine](docs/SCHOLARSHIP_MATCHING_ENGINE.md) for eligibility scoring, match categories, and admin analytics.
-
-See [Profile Intelligence Engine](docs/PROFILE_INTELLIGENCE.md) for admission readiness scoring, insights, and improvement recommendations.
-
-See [AI Knowledge Platform](docs/AI_KNOWLEDGE_PLATFORM.md) for RAG architecture, hybrid search, citations, and conversation memory.
-
-See [Application Workspace](docs/APPLICATION_WORKSPACE.md) for progress tracking, tasks, deadlines, and activity timeline.
-
-See [Digital Twin & Orchestrator](docs/DIGITAL_TWIN.md) for unified student state, event bus, and AI orchestration.
-
-See [Document Intelligence](docs/DOCUMENT_INTELLIGENCE.md) for OCR, extraction, validation, and twin sync.
-
-## Local development (without Docker)
-
-### Backend
+### 3. Seed sample data (universities & scholarships)
 
 ```bash
 cd apps/api
-python -m venv .venv
-source .venv/bin/activate   # Windows: .venv\Scripts\activate
-pip install -r requirements.txt
-
-# Start PostgreSQL locally or use docker compose up postgres qdrant -d
-export DATABASE_URL=postgresql+asyncpg://gradpilot:gradpilot_secret@localhost:5432/gradpilot
-export DATABASE_URL_SYNC=postgresql+psycopg2://gradpilot:gradpilot_secret@localhost:5432/gradpilot
-export JWT_SECRET_KEY=your-dev-secret
-
-alembic upgrade head
-uvicorn app.main:app --reload --port 8000
+.venv\Scripts\activate        # Windows
+# source .venv/bin/activate   # macOS/Linux
+python scripts/seed_universities_scholarships.py
 ```
 
-### Frontend
+### 4. Run
+
+**Windows**
+
+```bat
+scripts\run_backend.bat
+scripts\run_frontend.bat
+```
+
+**macOS / Linux**
 
 ```bash
-# From repo root (npm workspaces)
-npm install
-npm run dev:web
+bash scripts/run_backend.sh
+bash scripts/run_frontend.sh
 ```
+
+### 5. Open the app
+
+| Service | URL |
+|---------|-----|
+| Frontend | http://localhost:3000 |
+| API | http://localhost:8000 |
+| API docs | http://localhost:8000/docs |
+| Health check | http://localhost:8000/health |
+
+Register an account, complete your profile, then explore universities, scholarships, AI advisor, and planner.
+
+For a step-by-step walkthrough see [docs/STARTUP_GUIDE.md](docs/STARTUP_GUIDE.md).
+
+---
 
 ## Environment variables
 
-See [`.env.example`](.env.example) for the full list. Key variables:
+| Variable | Required | Description |
+|----------|----------|-------------|
+| `DATABASE_URL` | Yes | PostgreSQL URL (`postgresql+asyncpg://...`) |
+| `SECRET_KEY` | Yes | App secret for general signing |
+| `JWT_SECRET` | Yes | JWT signing key (32+ chars) |
+| `AUTH_SECRET` | Yes | NextAuth secret (must match frontend) |
+| `GEMINI_API_KEY` | Yes | Google Gemini API key |
+| `GEMINI_MODEL` | No | Default: `gemini-2.5-flash` |
+| `CORS_ORIGINS` | No | Allowed frontend origins |
+| `NEXT_PUBLIC_API_URL` | Yes | Backend URL for frontend (in `.env.local`) |
 
-| Variable | Description |
-|----------|-------------|
-| `DATABASE_URL` | Async PostgreSQL connection (SQLAlchemy) |
-| `DATABASE_URL_SYNC` | Sync URL for Alembic migrations |
-| `JWT_SECRET_KEY` | Secret for signing JWT tokens |
-| `OPENAI_API_KEY` | OpenAI API key (AI features) |
-| `QDRANT_HOST` | Qdrant vector DB host |
-| `NEXT_PUBLIC_API_URL` | Backend URL for frontend |
+Full template: [.env.example](.env.example)
 
-## Database models
+---
 
-- **User** — authentication & roles
-- **StudentProfile** — academic background, targets, budget
-- **University** / **Program** — institution & degree catalog
-- **Scholarship** — funding opportunities
-- **Application** — application tracking
-- **ChatSession** — AI conversation history (foundation)
+## Security — what is NOT pushed to GitHub
 
-## API endpoints (v1)
+The following are **gitignored** and must stay on your machine only:
 
-| Method | Endpoint | Auth | Description |
-|--------|----------|------|-------------|
-| POST | `/api/v1/auth/register` | No | Register user |
-| POST | `/api/v1/auth/login` | No | Login, get JWT |
-| POST | `/api/v1/auth/refresh` | No | Refresh tokens |
-| GET | `/api/v1/auth/me` | Yes | Current user |
-| GET/POST/PUT | `/api/v1/profile` | Yes | Student profile CRUD |
-| POST | `/api/v1/profile/analyze` | No* | Profile intelligence — readiness scores & guidance |
-| GET | `/api/v1/profile/analyze/analytics` | No | Admin analytics for profile intelligence |
-| POST | `/api/v1/ai/search` | No* | Hybrid knowledge search (PG + Qdrant + BM25) |
-| POST | `/api/v1/ai/chat` | Yes | RAG knowledge Q&A with citations + streaming |
-| GET | `/api/v1/ai/conversations` | Yes | List knowledge conversation sessions |
-| POST | `/api/v1/ai/index` | Yes | Re-index knowledge base |
-| GET | `/api/v1/student/digital-twin` | Yes | Unified student digital twin state |
-| GET | `/api/v1/student/timeline` | Yes | Chronological student journey |
-| POST | `/api/v1/student/events` | Yes | Publish platform event |
-| POST | `/api/v1/student/refresh` | Yes | Refresh all intelligence services |
-| POST | `/api/v1/documents/upload` | Yes | Upload & parse admission documents |
-| GET | `/api/v1/documents` | Yes | List documents with extractions |
-| POST | `/api/v1/documents/{id}/parse` | Yes | Run OCR → extract → validate pipeline |
-| GET | `/api/v1/documents/jobs/{id}` | Yes | Async processing job status |
-| GET | `/api/v1/universities` | No | List universities |
-| GET | `/api/v1/universities/filter` | No | Filter by tuition, GPA, country, major |
-| POST | `/api/v1/universities/search` | No | Keyword search |
-| POST | `/api/v1/universities/semantic-search` | No | Semantic search (Qdrant) |
-| POST | `/api/v1/recommend-universities` | No | Safe / Target / Ambitious recommendations (legacy) |
-| POST | `/api/v1/recommendations/universities` | No | Recommendation engine with explanations + Redis cache |
-| POST | `/api/v1/recommendations/scholarships` | No | Scholarship matching engine with eligibility scoring |
-| GET | `/api/v1/recommendations/scholarships/analytics` | No | Admin analytics for scholarship recommendations |
-| GET | `/api/v1/universities/{id}` | No | University + programs |
-| GET | `/api/v1/scholarships` | No | Search scholarships |
-| GET | `/api/v1/scholarships/{id}` | No | Scholarship detail |
-| GET/POST | `/api/v1/applications` | Yes | List/create application workspaces |
-| GET | `/api/v1/applications/{id}/workspace` | Yes | Full workspace (progress, docs, tasks, timeline) |
-| GET | `/api/v1/applications/{id}/progress` | Yes | Progress calculation (20/30/15/15/20) |
-| GET/POST/PATCH/DELETE | `/api/v1/applications/{id}/documents` | Yes | Document management |
-| GET/POST/PATCH/DELETE | `/api/v1/applications/{id}/tasks` | Yes | Task management |
-| POST | `/api/v1/applications/{id}/tasks/generate` | Yes | Auto-generate intelligent tasks |
-| GET/POST/PATCH/DELETE | `/api/v1/applications/{id}/notes` | Yes | Application notes |
-| GET/POST/PATCH/DELETE | `/api/v1/applications/{id}/deadlines` | Yes | Deadline tracking + reminders |
-| GET | `/api/v1/applications/{id}/timeline` | Yes | Activity timeline |
-| GET | `/api/v1/applications/analytics` | Yes | Admin dashboard metrics |
-| GET/PATCH/DELETE | `/api/v1/applications/{id}` | Yes | Application CRUD |
+| Ignored | Why |
+|---------|-----|
+| `.env`, `.env.local` | API keys, DB passwords, JWT secrets |
+| `uploads/` | User-uploaded documents |
+| `data/` | Local PostgreSQL data files |
+| `tools/` | Local PostgreSQL binaries |
+| `.venv/`, `node_modules/` | Dependencies |
 
-## API examples
+**Never commit:**
 
-### Register
+- Gemini API keys
+- Database passwords or Neon connection strings
+- JWT / NextAuth secrets
+- Uploaded student documents
 
-```bash
-curl -X POST http://localhost:8000/api/v1/auth/register \
-  -H "Content-Type: application/json" \
-  -d '{"email":"student@example.com","password":"securepass123","full_name":"Jane Doe"}'
-```
+If a secret was ever exposed, rotate it immediately in Google AI Studio and regenerate your JWT/AUTH secrets.
 
-### Login
+---
 
-```bash
-curl -X POST http://localhost:8000/api/v1/auth/login \
-  -H "Content-Type: application/json" \
-  -d '{"email":"student@example.com","password":"securepass123"}'
-```
-
-Response:
-
-```json
-{
-  "access_token": "eyJ...",
-  "refresh_token": "eyJ...",
-  "token_type": "bearer"
-}
-```
-
-### Create student profile
-
-```bash
-curl -X POST http://localhost:8000/api/v1/profile \
-  -H "Authorization: Bearer <access_token>" \
-  -H "Content-Type: application/json" \
-  -d '{
-    "nationality": "India",
-    "education_level": "Bachelors",
-    "field_of_study": "Computer Science",
-    "gpa": 3.8,
-    "target_degree": "Masters",
-    "target_countries": ["United States", "United Kingdom"]
-  }'
-```
-
-### Search universities
-
-```bash
-curl "http://localhost:8000/api/v1/universities?country=United%20States&q=MIT&limit=10"
-```
-
-### Create application
-
-```bash
-curl -X POST http://localhost:8000/api/v1/applications \
-  -H "Authorization: Bearer <access_token>" \
-  -H "Content-Type: application/json" \
-  -d '{"university_id":"<uuid>","status":"in_progress","notes":"Gathering LORs"}'
-```
-
-## Migrations
-
-```bash
-# Create new migration
-docker compose exec api alembic revision --autogenerate -m "describe change"
-
-# Apply migrations
-docker compose exec api alembic upgrade head
-
-# Rollback one step
-docker compose exec api alembic downgrade -1
-```
-
-## Testing
+## Database migrations
 
 ```bash
 cd apps/api
-pytest -v
+alembic upgrade head
 ```
 
-## Development roadmap
+---
 
-### Phase 1 — Foundation (current)
-- [x] Monorepo structure
-- [x] Docker Compose dev environment
-- [x] FastAPI with clean architecture
-- [x] JWT authentication
-- [x] Database models & Alembic migrations
-- [x] REST APIs (auth, profile, universities, scholarships, applications)
-- [x] Next.js frontend shell with Shadcn UI
+## Testing
 
-### Phase 2 — Discovery
-- [ ] University & scholarship data ingestion pipeline
-- [ ] Qdrant embedding index for semantic search
-- [ ] Admin APIs for catalog management
-- [ ] Advanced search filters & ranking
-
-### Phase 3 — AI Copilot
-- [ ] LangGraph guidance workflows
-- [ ] Chat session API & streaming responses
-- [ ] SOP co-pilot with document upload
-- [ ] Profile-aware recommendations
-
-### Phase 4 — Production
-- [ ] CI/CD (GitHub Actions)
-- [ ] Observability (logging, metrics, tracing)
-- [ ] Email verification & password reset
-- [ ] Billing (Stripe) & team accounts
-- [ ] Kubernetes / cloud deployment
-
-## Makefile shortcuts
+**Backend**
 
 ```bash
-make up        # docker compose up -d
-make down      # docker compose down
-make migrate   # run alembic upgrade head
-make logs      # tail all service logs
+cd apps/api
+pytest
 ```
+
+**Frontend lint**
+
+```bash
+npm run lint:web
+```
+
+---
+
+## AI integration
+
+All generative AI goes through a single service:
+
+```
+apps/api/app/services/ai/gemini_service.py
+```
+
+Supported methods: `generate_text()`, `chat()`, `rewrite()`, `summarize()`, `analyze()`.
+
+---
+
+## Deployment (production)
+
+Recommended stack:
+
+- **Database:** Neon PostgreSQL
+- **Backend:** Any Python host (Railway, Render, Fly.io, VPS)
+- **Frontend:** Vercel or similar
+- Set `ENVIRONMENT=production`, strong secrets, and a valid `GEMINI_API_KEY`
+- Use managed storage for uploads in production
+
+---
+
+## Contributing
+
+1. Fork the repo
+2. Create a feature branch
+3. Keep changes focused — do not rewrite recommendation/scoring logic unless explicitly requested
+4. Never commit `.env` files or API keys
+5. Open a pull request with a clear description
+
+---
 
 ## License
 
-Proprietary — GradPilot AI
+See repository license file. All rights reserved unless otherwise stated.
+
+---
+
+## Support
+
+For setup issues, check [docs/STARTUP_GUIDE.md](docs/STARTUP_GUIDE.md) or open a GitHub issue.

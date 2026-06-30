@@ -7,10 +7,14 @@ import { useApplications } from "@/hooks/use-queries";
 
 const STATUS_COLORS: Record<string, string> = {
   planning: "var(--chart-1)",
-  in_progress: "var(--chart-2)",
+  preparing: "var(--chart-2)",
+  ready: "var(--chart-2)",
   submitted: "var(--chart-3)",
+  interview: "var(--chart-3)",
   accepted: "var(--chart-4)",
   rejected: "var(--chart-5)",
+  deferred: "var(--chart-5)",
+  withdrawn: "var(--chart-5)",
 };
 
 export function ProgressOverviewWidget() {

@@ -33,7 +33,9 @@ export const metadata: Metadata = {
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="en" suppressHydrationWarning>
-      <body className={`${geistSans.variable} ${geistMono.variable}`}>
+      {/* suppressHydrationWarning prevents false hydration errors from browser extensions
+          (e.g. Grammarly) that inject data attributes into the <body> tag. */}
+      <body className={`${geistSans.variable} ${geistMono.variable}`} suppressHydrationWarning>
         <Providers>{children}</Providers>
       </body>
     </html>

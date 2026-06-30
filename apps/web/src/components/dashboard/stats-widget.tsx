@@ -13,7 +13,7 @@ export function ApplicationStatsWidget() {
     { label: "Applications", value: apps?.length ?? 0, icon: Send },
     { label: "Documents", value: docs?.length ?? 0, icon: FileText },
     { label: "Submitted", value: apps?.filter((a) => a.status === "submitted").length ?? 0, icon: CheckCircle },
-    { label: "In Progress", value: apps?.filter((a) => a.status === "in_progress" || a.status === "planning").length ?? 0, icon: Clock },
+    { label: "In Progress", value: apps?.filter((a) => ["planning", "preparing", "ready"].includes(a.status)).length ?? 0, icon: Clock },
   ];
 
   return (

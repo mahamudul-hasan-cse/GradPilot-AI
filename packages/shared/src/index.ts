@@ -12,6 +12,7 @@ export type TokenResponse = {
   access_token: string;
   refresh_token: string;
   token_type: string;
+  expires_in: number;
 };
 
 export type University = {
@@ -43,11 +44,14 @@ export type Scholarship = {
 };
 
 export type ApplicationStatus =
-  | "draft"
-  | "in_progress"
+  | "planning"
+  | "preparing"
+  | "ready"
   | "submitted"
+  | "interview"
   | "accepted"
   | "rejected"
+  | "deferred"
   | "withdrawn";
 
 export type Application = {

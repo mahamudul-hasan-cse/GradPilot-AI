@@ -18,7 +18,7 @@ Reciprocal Rank Fusion (RRF)
     ↓
 Context Builder + Compression
     ↓
-LLM (OpenAI / Gemini / Local)
+GeminiService
     ↓
 Citation Generator
     ↓
@@ -62,12 +62,11 @@ Knowledge-grounded Q&A with citations. **Requires authentication.**
 {
   "message": "What IELTS score do I need for UK masters?",
   "session_id": null,
-  "stream": false,
-  "llm_provider": "openai"
+  "stream": false
 }
 ```
 
-Set `"stream": true` for SSE streaming.
+Set `"stream": true` for SSE streaming. The deprecated `llm_provider` field is ignored for backward compatibility; Gemini is always used.
 
 ### `GET /api/v1/ai/conversations`
 
@@ -80,16 +79,12 @@ Re-index knowledge base (universities + scholarships + static guides).
 ## Configuration
 
 ```env
-LLM_PROVIDER=openai          # openai | gemini | local
-LLM_MODEL=gpt-4o-mini
-OPENAI_API_KEY=sk-...
 GEMINI_API_KEY=...
 GEMINI_MODEL=gemini-1.5-flash
-LOCAL_LLM_URL=http://localhost:11434
 KNOWLEDGE_MEMORY_TTL_SECONDS=86400
 ```
 
-Without API keys, the **fallback provider** returns context-grounded summaries.
+Without `GEMINI_API_KEY`, the service returns context-grounded fallback summaries.
 
 ## Modular Components
 
@@ -106,7 +101,8 @@ Without API keys, the **fallback provider** returns context-grounded summaries.
 | AnswerValidator | `services/knowledge/pipeline/answer_validator.py` |
 | PromptManager | `services/knowledge/prompts/prompt_manager.py` |
 | ConversationMemory | `services/knowledge/memory/conversation_memory.py` |
-| LLM Providers | `services/knowledge/llm/providers.py` |
+| GeminiService | `services/ai/gemini_service.py` |
+| Legacy LLM Shim | `services/knowledge/llm/providers.py` |
 
 ## Setup
 

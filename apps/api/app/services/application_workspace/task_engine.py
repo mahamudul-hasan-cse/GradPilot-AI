@@ -23,7 +23,8 @@ class TaskEngine:
         *,
         due_date: date | None = None,
     ) -> list[ApplicationTask]:
-        existing_types = {t.task_type for t in (application.tasks or [])}
+        existing_tasks = await self.task_repo.get_by_application(application.id)
+        existing_types = {t.task_type for t in existing_tasks}
         created: list[ApplicationTask] = []
 
         for template in AUTO_TASK_TEMPLATES:
