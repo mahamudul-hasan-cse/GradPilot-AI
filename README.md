@@ -20,6 +20,7 @@ Runs locally with **Python + FastAPI**, **Next.js**, **PostgreSQL**, and **Googl
 | **Documents** | Upload IELTS, CV, transcripts |
 
 ---
+<img width="911" height="613" alt="gradpilot" src="https://github.com/user-attachments/assets/1c1ef48a-7520-4f34-bde2-314e69d013f1" />
 
 ## Tech stack
 
