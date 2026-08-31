@@ -1,5 +1,10 @@
 # GradPilot AI
 
+![Python](https://img.shields.io/badge/Python-3.11+-3776AB?style=flat&logo=python&logoColor=white)
+![FastAPI](https://img.shields.io/badge/FastAPI-0.109-009688?style=flat&logo=fastapi&logoColor=white)
+![Next.js](https://img.shields.io/badge/Next.js-14-000000?style=flat&logo=next.js&logoColor=white)
+![License](https://img.shields.io/badge/License-MIT-22c55e?style=flat)
+
 GradPilot is an AI-powered study abroad platform for international students. Students can build a profile, upload documents, discover universities and scholarships, chat with an AI advisor, generate SOP drafts, plan their application timeline, and track applications — all from one dashboard.
 
 Runs locally with **Python + FastAPI**, **Next.js**, **PostgreSQL**, and **Google Gemini** (no Docker required).
@@ -49,6 +54,9 @@ GradPilot-AI/
 ```
 
 ---
+## Thumbnail 
+<img width="2752" height="1536" alt="Gemini_Generated_Image_8tfxxb8tfxxb8tfx" src="https://github.com/user-attachments/assets/0680ac92-e371-470a-bd25-38797e665ef5" />
+
 
 ## Quick start
 
@@ -240,11 +248,14 @@ Recommended stack:
 
 ---
 
-## License
+## 👤 Author
 
-See repository license file. All rights reserved unless otherwise stated.
+**Md. Mahamudul Hasan**
+
+- GitHub: [@mahamudul-hasan-cse](https://github.com/mahamudul-hasan-cse)
 
 ---
+
 
 ## Support
 
