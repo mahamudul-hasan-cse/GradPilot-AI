@@ -10,7 +10,7 @@ GradPilot is an AI-powered study abroad platform for international students. Stu
 Runs locally with **Python + FastAPI**, **Next.js**, **PostgreSQL**, and **Google Gemini** (no Docker required).
 
 ---
-
+**Demo Video Link: https://youtu.be/GVCv6PTxnYU?si=4GEDcw7wUB0YRShk**
 ## Features
 
 | Area | What students can do |
