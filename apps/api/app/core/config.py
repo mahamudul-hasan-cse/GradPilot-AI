@@ -79,6 +79,8 @@ class Settings(BaseSettings):
     llm_model: str = Field(default="gemini-1.5-flash", alias="LLM_MODEL")
     gemini_api_key: str | None = Field(default=None, alias="GEMINI_API_KEY")
     gemini_model: str = Field(default="gemini-2.5-flash", alias="GEMINI_MODEL")
+    openrouter_api_key: str | None = Field(default=None, alias="OPENROUTER_API_KEY")
+    openrouter_model: str = Field(default="openai/gpt-4o-mini", alias="OPENROUTER_MODEL")
     knowledge_memory_ttl_seconds: int = Field(default=86400, alias="KNOWLEDGE_MEMORY_TTL_SECONDS")
 
     document_upload_dir: str = Field(default="uploads", validation_alias=AliasChoices("UPLOAD_DIR", "DOCUMENT_UPLOAD_DIR"))
@@ -136,3 +138,12 @@ def get_settings() -> Settings:
 
 
 settings = get_settings()
+
+
+def present_secret(value: str | None) -> str | None:
+    """Return a stripped secret, or None when the value is missing or blank."""
+
+    if value is None:
+        return None
+    stripped = value.strip()
+    return stripped or None

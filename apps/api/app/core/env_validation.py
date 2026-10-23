@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from app.core.config import settings
+from app.core.config import present_secret, settings
 
 INSECURE_SECRET_VALUES = {
     "dev-secret-change-in-production",
@@ -24,5 +24,5 @@ def validate_environment() -> None:
     if settings.debug:
         raise RuntimeError("DEBUG must be false in production")
 
-    if not settings.gemini_api_key:
-        raise RuntimeError("GEMINI_API_KEY is required in production")
+    if not (present_secret(settings.openrouter_api_key) or present_secret(settings.gemini_api_key)):
+        raise RuntimeError("OPENROUTER_API_KEY or GEMINI_API_KEY is required in production")

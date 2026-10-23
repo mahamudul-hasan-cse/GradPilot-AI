@@ -299,7 +299,7 @@ Set funding goal → Browse / search scholarships
 |----|-------------|--------|
 | NFR-R1 | Uptime | 99.5% (MVP) → 99.9% (GA) |
 | NFR-R2 | Database backups | Daily, 30-day retention |
-| NFR-R3 | Graceful degradation if Qdrant/Gemini unavailable | Fallback to keyword search or context-grounded summaries |
+| NFR-R3 | Graceful degradation if Qdrant or the generative provider (OpenRouter or Gemini) is unavailable | Fallback to keyword search or context-grounded summaries |
 
 ### Security & Privacy
 
@@ -543,7 +543,7 @@ Set funding goal → Browse / search scholarships
 | AI hallucinations | RAG on catalog; guardrails; human review for SOP |
 | Low willingness to pay | Freemium wedge; prove value before paywall |
 | Regulatory (education advice) | Disclaimers; not a licensed counselor |
-| High AI costs | Gemini usage controls, caching, and usage caps on free tier |
+| High AI costs | OpenRouter or Gemini usage controls, caching, and usage caps on free tier |
 
 ### Open Questions
 

@@ -9,7 +9,7 @@ The launch experience should help a student:
 1. Register and build a profile
 2. Upload IELTS, CV, and transcript documents
 3. Receive university and scholarship matches
-4. Chat with a Gemini-powered AI advisor
+4. Chat with an AI advisor (OpenRouter preferred, Gemini supported)
 5. Generate SOP drafts
 6. Practice interview questions
 7. Track applications
@@ -17,13 +17,13 @@ The launch experience should help a student:
 
 ## AI Direction
 
-Gemini is the only AI engine for launch. Multi-provider routing, AI gateway abstractions, prompt registries, A/B testing, cost analytics, Anthropic, Ollama, and OpenAI support are out of scope for the MVP.
+Generative AI uses OpenRouter when `OPENROUTER_API_KEY` is set, and Google Gemini when only `GEMINI_API_KEY` is set. A full AI gateway, prompt registries, A/B testing, cost analytics, Anthropic, and Ollama remain out of scope.
 
 ## Module Order
 
 1. Dashboard command center
 2. Profile wizard
-3. Gemini-only AI advisor
+3. AI advisor (OpenRouter or Gemini)
 4. University explorer and matches
 5. Scholarship explorer and matches
 6. Application tracker

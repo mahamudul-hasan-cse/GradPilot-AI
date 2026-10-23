@@ -7,7 +7,7 @@
 
 GradPilot is an AI-powered study abroad platform for international students. Students can build a profile, upload documents, discover universities and scholarships, chat with an AI advisor, generate SOP drafts, plan their application timeline, and track applications — all from one dashboard.
 
-Runs locally with **Python + FastAPI**, **Next.js**, **PostgreSQL**, and **Google Gemini** (no Docker required).
+Runs locally with **Python + FastAPI**, **Next.js**, **PostgreSQL**, and **OpenRouter** or **Google Gemini** (no Docker required).
 
 ---
 **Demo Video Link: https://youtu.be/GVCv6PTxnYU?si=4GEDcw7wUB0YRShk**
@@ -18,7 +18,7 @@ Runs locally with **Python + FastAPI**, **Next.js**, **PostgreSQL**, and **Googl
 | **Profile** | Save GPA, IELTS, field of study, goals; get readiness scores |
 | **Universities** | Search 35+ real universities, filter by country, view details |
 | **Scholarships** | Browse 40+ real scholarships with funding type and deadlines |
-| **AI Advisor** | Chat with Gemini-powered study abroad guidance |
+| **AI Advisor** | Chat with AI-powered study abroad guidance (OpenRouter or Gemini) |
 | **Planner** | Personalized tasks linked to profile scores |
 | **Timeline** | Visual journey of profile, documents, and application events |
 | **Applications** | Kanban tracker for application stages |
@@ -33,7 +33,7 @@ Runs locally with **Python + FastAPI**, **Next.js**, **PostgreSQL**, and **Googl
 |-------|--------|
 | Frontend | Next.js 15, TypeScript, TailwindCSS, React Query, Zustand, NextAuth |
 | Backend | FastAPI, SQLAlchemy, Alembic, PostgreSQL |
-| AI | Google Gemini API (`gemini-2.5-flash`) |
+| AI | OpenRouter (preferred, default `openai/gpt-4o-mini`) or Google Gemini API (`gemini-2.5-flash`) |
 | Production DB | [Neon PostgreSQL](https://neon.tech) (recommended) |
 
 ---
@@ -65,7 +65,7 @@ GradPilot-AI/
 - Python 3.12+
 - Node.js 20+
 - PostgreSQL 15+ (local install or Neon cloud)
-- A [Google Gemini API key](https://aistudio.google.com/apikey)
+- An [OpenRouter API key](https://openrouter.ai/keys) or a [Google Gemini API key](https://aistudio.google.com/apikey)
 
 ### 1. Clone and configure secrets
 
@@ -88,7 +88,7 @@ Edit `.env` and set at minimum:
 
 - `DATABASE_URL` — your PostgreSQL connection string
 - `SECRET_KEY`, `JWT_SECRET`, `AUTH_SECRET` — long random strings
-- `GEMINI_API_KEY` — your Gemini API key
+- `OPENROUTER_API_KEY` (preferred) or `GEMINI_API_KEY` — at least one AI provider key
 
 > **Important:** `AUTH_SECRET` in root `.env` must match `AUTH_SECRET` in `apps/web/.env.local`.
 
@@ -156,7 +156,9 @@ For a step-by-step walkthrough see [docs/STARTUP_GUIDE.md](docs/STARTUP_GUIDE.md
 | `SECRET_KEY` | Yes | App secret for general signing |
 | `JWT_SECRET` | Yes | JWT signing key (32+ chars) |
 | `AUTH_SECRET` | Yes | NextAuth secret (must match frontend) |
-| `GEMINI_API_KEY` | Yes | Google Gemini API key |
+| `OPENROUTER_API_KEY` | One of these | OpenRouter API key — preferred provider when set |
+| `OPENROUTER_MODEL` | No | Default: `openai/gpt-4o-mini` |
+| `GEMINI_API_KEY` | One of these | Google Gemini API key — used when OpenRouter is not configured |
 | `GEMINI_MODEL` | No | Default: `gemini-2.5-flash` |
 | `CORS_ORIGINS` | No | Allowed frontend origins |
 | `NEXT_PUBLIC_API_URL` | Yes | Backend URL for frontend (in `.env.local`) |
@@ -179,12 +181,12 @@ The following are **gitignored** and must stay on your machine only:
 
 **Never commit:**
 
-- Gemini API keys
+- OpenRouter / Gemini API keys
 - Database passwords or Neon connection strings
 - JWT / NextAuth secrets
 - Uploaded student documents
 
-If a secret was ever exposed, rotate it immediately in Google AI Studio and regenerate your JWT/AUTH secrets.
+If a secret was ever exposed, rotate it immediately (OpenRouter dashboard / Google AI Studio) and regenerate your JWT/AUTH secrets.
 
 ---
 
@@ -216,11 +218,13 @@ npm run lint:web
 
 ## AI integration
 
-All generative AI goes through a single service:
+Generative AI is selected by `get_generative_service()` in `apps/api/app/services/ai/__init__.py`:
 
-```
-apps/api/app/services/ai/gemini_service.py
-```
+1. **OpenRouter** (`openrouter_service.py`) when `OPENROUTER_API_KEY` is set
+2. **Gemini** (`gemini_service.py`) when only `GEMINI_API_KEY` is set
+3. Built-in fallback text when neither key is set
+
+`/health/ai` reports `active_provider`, `openrouter_configured`, `gemini_configured`, and `llm_model`.
 
 Supported methods: `generate_text()`, `chat()`, `rewrite()`, `summarize()`, `analyze()`.
 
@@ -233,7 +237,7 @@ Recommended stack:
 - **Database:** Neon PostgreSQL
 - **Backend:** Any Python host (Railway, Render, Fly.io, VPS)
 - **Frontend:** Vercel or similar
-- Set `ENVIRONMENT=production`, strong secrets, and a valid `GEMINI_API_KEY`
+- Set `ENVIRONMENT=production`, strong secrets, and a valid `OPENROUTER_API_KEY` or `GEMINI_API_KEY`
 - Use managed storage for uploads in production
 
 ---

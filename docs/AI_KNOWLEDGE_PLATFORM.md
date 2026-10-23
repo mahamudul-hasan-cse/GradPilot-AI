@@ -18,7 +18,7 @@ Reciprocal Rank Fusion (RRF)
     ↓
 Context Builder + Compression
     ↓
-GeminiService
+Generative service (OpenRouter or Gemini)
     ↓
 Citation Generator
     ↓
@@ -66,7 +66,7 @@ Knowledge-grounded Q&A with citations. **Requires authentication.**
 }
 ```
 
-Set `"stream": true` for SSE streaming. The deprecated `llm_provider` field is ignored for backward compatibility; Gemini is always used.
+Set `"stream": true` for SSE streaming. The deprecated `llm_provider` field is ignored for backward compatibility. The active provider is OpenRouter when `OPENROUTER_API_KEY` is set, otherwise Gemini.
 
 ### `GET /api/v1/ai/conversations`
 
@@ -79,12 +79,14 @@ Re-index knowledge base (universities + scholarships + static guides).
 ## Configuration
 
 ```env
-GEMINI_API_KEY=...
-GEMINI_MODEL=gemini-1.5-flash
+OPENROUTER_API_KEY=
+OPENROUTER_MODEL=openai/gpt-4o-mini
+GEMINI_API_KEY=
+GEMINI_MODEL=gemini-2.5-flash
 KNOWLEDGE_MEMORY_TTL_SECONDS=86400
 ```
 
-Without `GEMINI_API_KEY`, the service returns context-grounded fallback summaries.
+OpenRouter is used when `OPENROUTER_API_KEY` is set. Gemini is used when only `GEMINI_API_KEY` is set. Without either key, the service returns context-grounded fallback summaries.
 
 ## Modular Components
 
@@ -101,6 +103,7 @@ Without `GEMINI_API_KEY`, the service returns context-grounded fallback summarie
 | AnswerValidator | `services/knowledge/pipeline/answer_validator.py` |
 | PromptManager | `services/knowledge/prompts/prompt_manager.py` |
 | ConversationMemory | `services/knowledge/memory/conversation_memory.py` |
+| OpenRouterService | `services/ai/openrouter_service.py` |
 | GeminiService | `services/ai/gemini_service.py` |
 | Legacy LLM Shim | `services/knowledge/llm/providers.py` |
 

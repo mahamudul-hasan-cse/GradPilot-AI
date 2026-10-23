@@ -5,7 +5,7 @@ cd "$(dirname "$0")/.."
 
 if [ ! -f ".env" ]; then
   cp .env.example .env
-  echo "Created .env from .env.example. Update DATABASE_URL and GEMINI_API_KEY as needed."
+  echo "Created .env from .env.example. Update DATABASE_URL and OPENROUTER_API_KEY or GEMINI_API_KEY as needed."
 fi
 
 cd apps/api
