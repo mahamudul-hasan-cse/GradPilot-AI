@@ -1,6 +1,6 @@
 from functools import lru_cache
 from pathlib import Path
-from typing import List
+from typing import List, Literal
 from urllib.parse import parse_qsl, urlencode, urlsplit, urlunsplit
 
 from pydantic import AliasChoices, Field, field_validator
@@ -59,6 +59,14 @@ def normalize_async_database_url(url: str) -> str:
     if needs_ssl and not saw_ssl:
         rewritten.append(("ssl", "require"))
     return urlunsplit((parts.scheme, parts.netloc, parts.path, urlencode(rewritten), parts.fragment))
+
+
+_LOOPBACK_HOSTS = frozenset({"localhost", "127.0.0.1", "0.0.0.0", "[::1]", "::1"})
+
+
+def is_loopback_origin(origin: str) -> bool:
+    host = urlsplit(origin).hostname or ""
+    return host.lower() in _LOOPBACK_HOSTS or host.lower().endswith(".localhost")
 
 
 class Settings(BaseSettings):
@@ -137,6 +145,8 @@ class Settings(BaseSettings):
 
     document_upload_dir: str = Field(default="uploads", validation_alias=AliasChoices("UPLOAD_DIR", "DOCUMENT_UPLOAD_DIR"))
     document_ocr_provider: str = Field(default="fallback", alias="DOCUMENT_OCR_PROVIDER")
+    # "blob" is reserved for Azure Blob storage (not implemented yet; falls back to local).
+    upload_backend: Literal["local", "blob"] = Field(default="local", alias="UPLOAD_BACKEND")
 
     @field_validator("cors_origins", mode="before")
     @classmethod
@@ -147,7 +157,12 @@ class Settings(BaseSettings):
 
     @property
     def cors_origins_list(self) -> List[str]:
-        return [origin.strip() for origin in self.cors_origins.split(",") if origin.strip()]
+        origins = [origin.strip() for origin in self.cors_origins.split(",") if origin.strip()]
+        if self.is_production:
+            # Local dev origins must never be trusted by the production API,
+            # even if CORS_ORIGINS on the host still lists them.
+            origins = [origin for origin in origins if not is_loopback_origin(origin)]
+        return origins
 
     @property
     def async_database_url(self) -> str:

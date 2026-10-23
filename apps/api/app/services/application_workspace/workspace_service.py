@@ -18,6 +18,8 @@ from app.models.application import (
     ApplicationNote,
     ApplicationTask,
 )
+from app.models.scholarship import Scholarship
+from app.models.university import Program, University
 from app.models.user import User
 from app.repositories.application import ApplicationRepository
 from app.repositories.application_activity import ApplicationActivityRepository
@@ -77,6 +79,22 @@ class ApplicationWorkspaceService:
             raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Application not found")
         return app
 
+    async def _ensure_references_exist(
+        self,
+        *,
+        university_id: UUID | None = None,
+        program_id: UUID | None = None,
+        scholarship_id: UUID | None = None,
+    ) -> None:
+        """Return 404 for unknown catalogue ids instead of a FK IntegrityError (500)."""
+        for model, entity_id, label in (
+            (University, university_id, "University"),
+            (Program, program_id, "Program"),
+            (Scholarship, scholarship_id, "Scholarship"),
+        ):
+            if entity_id is not None and await self.db.get(model, entity_id) is None:
+                raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=f"{label} not found")
+
     async def list_applications(self, user: User, *, skip: int = 0, limit: int = 50) -> list[ApplicationResponse]:
         apps = await self.app_repo.get_by_user_id(user.id, skip=skip, limit=limit)
         return [self._to_response(a) for a in apps]
@@ -98,6 +116,11 @@ class ApplicationWorkspaceService:
     async def create_application(self, user: User, data: ApplicationCreate) -> ApplicationResponse:
         if data.status and data.status not in APPLICATION_STATUSES:
             raise HTTPException(status_code=400, detail=f"Invalid status: {data.status}")
+        await self._ensure_references_exist(
+            university_id=data.university_id,
+            program_id=data.program_id,
+            scholarship_id=data.scholarship_id,
+        )
 
         profile = await self.profile_repo.get_by_user_id(user.id)
         app = Application(
@@ -118,7 +141,7 @@ class ApplicationWorkspaceService:
         created = await self.app_repo.create(app)
         await self.task_engine.generate_tasks(created, due_date=data.deadline)
         await self.deadline_engine.seed_default_deadlines(created)
-        created = await self.app_repo.get_by_id_for_user(created.id, user.id)
+        created = await self.app_repo.get_by_id_for_user(created.id, user.id, populate_existing=True)
         self.progress_engine.apply_to_application(created)
         await self.app_repo.update(created)
 
@@ -140,6 +163,11 @@ class ApplicationWorkspaceService:
 
         if "status" in update_data and update_data["status"] not in APPLICATION_STATUSES:
             raise HTTPException(status_code=400, detail=f"Invalid status: {update_data['status']}")
+        await self._ensure_references_exist(
+            university_id=update_data.get("university_id"),
+            program_id=update_data.get("program_id"),
+            scholarship_id=update_data.get("scholarship_id"),
+        )
 
         for field, value in update_data.items():
             setattr(app, field, value)
@@ -157,6 +185,11 @@ class ApplicationWorkspaceService:
                 event_type="status_changed",
                 title=f"Status changed to {app.status}",
                 metadata={"from": old_status, "to": app.status},
+            )
+        if update_data.keys() & {"university_id", "program_id", "scholarship_id"}:
+            # Eager-loaded relationships still point at the old rows.
+            updated = await self.app_repo.get_by_id_for_user(
+                application_id, user.id, populate_existing=True
             )
         return self._to_response(updated)
 

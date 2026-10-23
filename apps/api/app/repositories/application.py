@@ -1,6 +1,6 @@
 from uuid import UUID
 
-from sqlalchemy import select
+from sqlalchemy import inspect, select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 
@@ -41,12 +41,32 @@ class ApplicationRepository(BaseRepository[Application]):
         )
         return list(result.scalars().all())
 
-    async def get_by_id_for_user(self, application_id: UUID, user_id: UUID) -> Application | None:
-        result = await self.db.execute(
+    async def update(self, entity: Application) -> Application:
+        # A plain refresh() expires lazy relationships, and reading them later
+        # (e.g. ApplicationResponse.university) would lazy-load outside the
+        # async greenlet (MissingGreenlet). Refresh columns only.
+        await self.db.flush()
+        column_keys = [attr.key for attr in inspect(Application).column_attrs]
+        await self.db.refresh(entity, attribute_names=column_keys)
+        return entity
+
+    async def get_by_id_for_user(
+        self,
+        application_id: UUID,
+        user_id: UUID,
+        *,
+        populate_existing: bool = False,
+    ) -> Application | None:
+        stmt = (
             select(Application)
             .options(*self._workspace_options())
             .where(Application.id == application_id, Application.user_id == user_id)
         )
+        if populate_existing:
+            # Reload relationships on an instance already in the identity map,
+            # e.g. after its foreign keys changed.
+            stmt = stmt.execution_options(populate_existing=True)
+        result = await self.db.execute(stmt)
         return result.scalar_one_or_none()
 
     async def get_workspace(self, application_id: UUID, user_id: UUID) -> Application | None:

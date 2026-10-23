@@ -39,7 +39,7 @@ param openRouterApiKey string
 param openRouterModel string = 'openai/gpt-4o-mini'
 
 @description('Comma-separated browser origins. Must include the Vercel app and local dev.')
-param corsOrigins string = 'https://gradpilot-ai.vercel.app,http://localhost:3000,http://127.0.0.1:3000'
+param corsOrigins string = 'https://gradpilot-ai.vercel.app'
 
 @description('When true, Postgres accepts any client IP over TLS. Container Apps Consumption has no stable egress IP. Set false to allow only the Azure services firewall rule.')
 param postgresPublicAccess bool = true
