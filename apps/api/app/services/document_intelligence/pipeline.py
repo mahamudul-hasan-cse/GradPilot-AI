@@ -139,11 +139,9 @@ class DocumentPipeline:
         return await self.job_repo.create(job)
 
     async def _load_content(self, doc: DocumentUpload) -> bytes:
-        if doc.file_url and doc.file_url.startswith("/uploads/"):
-            from pathlib import Path
-            from app.core.config import settings
+        from app.services.document_intelligence.storage import get_upload_storage
 
-            path = Path(settings.document_upload_dir) / doc.file_url.replace("/uploads/", "")
-            if path.exists():
-                return path.read_bytes()
+        content = get_upload_storage().load(doc.file_url)
+        if content is not None:
+            return content
         return doc.file_name.encode("utf-8")

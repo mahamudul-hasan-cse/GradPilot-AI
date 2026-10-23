@@ -4,13 +4,12 @@ from __future__ import annotations
 
 import logging
 import re
-from pathlib import Path, PurePosixPath, PureWindowsPath
+from pathlib import PurePosixPath, PureWindowsPath
 from uuid import UUID, uuid4
 
 from fastapi import BackgroundTasks, HTTPException, UploadFile, status
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.core.config import settings
 from app.models.document_intelligence import SUPPORTED_DOCUMENT_TYPES, DocumentProcessingJob, DocumentUpload
 from app.models.user import User
 from app.repositories.document_intelligence import DocumentJobRepository, DocumentUploadRepository
@@ -23,6 +22,7 @@ from app.schemas.document_intelligence import (
 )
 from app.services.document_intelligence.pipeline import DocumentPipeline
 from app.services.document_intelligence.queue import DocumentProcessingQueue
+from app.services.document_intelligence.storage import get_upload_storage
 from app.services.document_intelligence.twin_sync import TwinSyncService
 
 logger = logging.getLogger(__name__)
@@ -48,10 +48,7 @@ class DocumentIntelligenceService:
         self.pipeline = DocumentPipeline(db)
         self.queue = DocumentProcessingQueue()
         self.twin_sync = TwinSyncService(db)
-        self._ensure_upload_dir()
-
-    def _ensure_upload_dir(self) -> None:
-        Path(settings.document_upload_dir).mkdir(parents=True, exist_ok=True)
+        self.storage = get_upload_storage()
 
     async def upload(
         self,
@@ -81,13 +78,8 @@ class DocumentIntelligenceService:
         doc_id = uuid4()
         original_name = sanitize_filename(file.filename)
         safe_name = f"{doc_id}_{original_name}"
-        # NOTE: this is local container disk. On App Service with
-        # WEBSITES_ENABLE_APP_SERVICE_STORAGE=false it is ephemeral, so files are
-        # lost on restart/redeploy/scale-out while DB rows keep pointing at them.
-        # Move to Azure Blob storage before relying on uploads in production.
-        file_path = Path(settings.document_upload_dir) / safe_name
-        file_path.write_bytes(content)
-        file_url = f"/uploads/{safe_name}"
+        # Local disk is ephemeral on App Service; see storage.py (Blob is TODO).
+        file_url = self.storage.save(safe_name, content)
 
         doc = DocumentUpload(
             id=doc_id,
@@ -167,8 +159,18 @@ class DocumentIntelligenceService:
         doc = await self.doc_repo.get_for_user(document_id, user.id)
         if not doc:
             raise HTTPException(status_code=404, detail="Document not found")
+        if doc.status in {"uploaded", "queued", "processing"}:
+            raise HTTPException(status_code=400, detail="Document not yet parsed; try again once parsing completes")
+        if doc.status == "failed":
+            raise HTTPException(status_code=422, detail="Document parsing failed; re-run POST /parse or re-upload")
         if not doc.extracted_fields:
-            raise HTTPException(status_code=400, detail="Document not yet parsed")
+            raise HTTPException(
+                status_code=422,
+                detail=(
+                    "Document was parsed but no fields could be extracted, so there is nothing to validate. "
+                    "Check that the file is readable text and uses the expected document type."
+                ),
+            )
         from app.services.document_intelligence.validator import ValidationEngine
 
         validation = ValidationEngine().validate(doc.classified_type or "unknown", doc.extracted_fields)

@@ -39,7 +39,7 @@ Set these on the App Service (`gradpilot-api-gp`):
 | `JWT_SECRET` | At least 32 characters. The API signs tokens with this |
 | `OPENROUTER_API_KEY` | OpenRouter key |
 | `OPENROUTER_MODEL` | `openai/gpt-4o-mini` |
-| `CORS_ORIGINS` | Must include `https://gradpilot-ai.vercel.app` (plus local origins if you need them) |
+| `CORS_ORIGINS` | Must include `https://gradpilot-ai.vercel.app`. Loopback origins (`localhost`, `127.0.0.1`) are dropped automatically when `ENVIRONMENT=production` |
 | `WEBSITES_PORT` | `8000` |
 
 `WEBSITES_PORT` tells App Service which port the container listens on. The image runs uvicorn on port 8000.

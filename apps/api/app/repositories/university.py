@@ -1,14 +1,49 @@
+import re
 from dataclasses import dataclass
 from decimal import Decimal
 from typing import Sequence
 from uuid import UUID
 
-from sqlalchemy import String, cast, func, or_, select
+from sqlalchemy import Integer, String, case, cast, func, literal, or_, select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 
 from app.models.university import University
 from app.repositories.base import BaseRepository
+
+
+_SEARCH_STOPWORDS = frozenset(
+    {
+        "a", "an", "and", "at", "best", "by", "for", "from", "good", "i", "in", "into", "is",
+        "me", "my", "of", "on", "or", "program", "programs", "programme", "study", "the", "to",
+        "top", "universities", "university", "want", "where", "with",
+    }
+)
+_MAX_SEARCH_TOKENS = 8
+_SEARCH_ALIASES = {
+    "uk": "united kingdom",
+    "us": "united states",
+    "usa": "united states",
+    "uae": "united arab emirates",
+    "cs": "computer science",
+}
+
+
+def tokenize_search_query(query: str) -> list[str]:
+    """Split a free-text query into distinct lowercase keyword tokens."""
+
+    tokens: list[str] = []
+    for token in re.findall(r"[\w'+#.-]+", query.lower()):
+        token = token.strip("'.-")
+        if len(token) < 2 or token in _SEARCH_STOPWORDS or token in tokens:
+            continue
+        tokens.append(_SEARCH_ALIASES.get(token, token))
+    return tokens[:_MAX_SEARCH_TOKENS]
+
+
+def _like_pattern(term: str) -> str:
+    escaped = term.replace("\\", "\\\\").replace("%", "\\%").replace("_", "\\_")
+    return f"%{escaped}%"
 
 
 @dataclass
@@ -122,19 +157,47 @@ class UniversityRepository(BaseRepository[University]):
         major: str | None = None,
         limit: int = 20,
     ) -> list[University]:
+        """Keyword search used directly and as the semantic-search fallback.
+
+        The query is tokenised and a university matches if any token matches
+        any searchable field. Results are ranked by how many tokens matched
+        (plus a bonus for the full phrase), so "computer science Germany"
+        returns German CS schools first instead of nothing.
+        """
         params = UniversityFilterParams(country=country, major=major, limit=limit)
         stmt = self._apply_filters(self._active_stmt(), params)
-        pattern = f"%{query}%"
-        stmt = stmt.where(
-            or_(
-                University.name.ilike(pattern),
-                University.city.ilike(pattern),
-                University.description.ilike(pattern),
-                University.search_text.ilike(pattern),
-                cast(University.programs, String).ilike(pattern),
-            )
+
+        fields = (
+            University.name,
+            University.city,
+            University.country,
+            University.description,
+            University.search_text,
+            cast(University.programs, String),
+            cast(University.majors, String),
         )
-        stmt = stmt.order_by(University.ranking.asc().nullslast()).limit(limit)
+
+        def matches(term: str):
+            if len(term) <= 3 and term.isalnum():
+                # Short tokens ("ai", "mba") match whole words only, not "Spain".
+                word = rf"\m{term}\M"
+                return or_(*(field.op("~*")(word) for field in fields))
+            pattern = _like_pattern(term)
+            return or_(*(field.ilike(pattern, escape="\\") for field in fields))
+
+        phrase = query.strip()
+        tokens = tokenize_search_query(phrase)
+        conditions = [matches(phrase)] + [matches(token) for token in tokens]
+        score = case((conditions[0], literal(len(tokens) + 1)), else_=literal(0))
+        for condition in conditions[1:]:
+            score = score + case((condition, literal(1)), else_=literal(0))
+        score = cast(score, Integer)
+
+        stmt = (
+            stmt.where(or_(*conditions))
+            .order_by(score.desc(), University.ranking.asc().nullslast(), University.name.asc())
+            .limit(limit)
+        )
         result = await self.db.execute(stmt)
         return list(result.scalars().all())
 

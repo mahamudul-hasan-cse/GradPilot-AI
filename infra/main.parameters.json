@@ -30,7 +30,7 @@
       "value": "${OPENROUTER_MODEL=openai/gpt-4o-mini}"
     },
     "corsOrigins": {
-      "value": "${CORS_ORIGINS=https://gradpilot-ai.vercel.app,http://localhost:3000,http://127.0.0.1:3000}"
+      "value": "${CORS_ORIGINS=https://gradpilot-ai.vercel.app}"
     },
     "keyVaultOfficerPrincipalType": {
       "value": "${KEY_VAULT_OFFICER_PRINCIPAL_TYPE=User}"
