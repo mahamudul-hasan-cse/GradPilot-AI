@@ -8,6 +8,9 @@ from app.services.university_discovery import UniversityDiscoveryService
 router = APIRouter(tags=["University Discovery"])
 
 
+# `/recommend-universities` is the documented path (docs/UNIVERSITY_DISCOVERY.md);
+# `/discovery/recommend-universities` is the namespaced alias.
+@router.post("/discovery/recommend-universities", response_model=RecommendUniversitiesResponse)
 @router.post("/recommend-universities", response_model=RecommendUniversitiesResponse)
 async def recommend_universities(
     request: RecommendUniversitiesRequest,

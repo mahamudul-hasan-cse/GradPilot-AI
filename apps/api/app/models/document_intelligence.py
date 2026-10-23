@@ -6,7 +6,7 @@ from datetime import datetime
 from typing import Any
 from uuid import UUID
 
-from sqlalchemy import Boolean, ForeignKey, Integer, Numeric, String, Text
+from sqlalchemy import Boolean, DateTime, ForeignKey, Integer, Numeric, String, Text
 from sqlalchemy.dialects.postgresql import JSON
 from sqlalchemy.orm import Mapped, mapped_column
 
@@ -70,5 +70,5 @@ class DocumentProcessingJob(UUIDPrimaryKeyMixin, TimestampMixin, Base):
     stage: Mapped[str | None] = mapped_column(String(50))
     error_message: Mapped[str | None] = mapped_column(Text)
     queue_position: Mapped[int | None] = mapped_column(Integer)
-    started_at: Mapped[datetime | None] = mapped_column()
-    completed_at: Mapped[datetime | None] = mapped_column()
+    started_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+    completed_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))

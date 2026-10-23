@@ -3,7 +3,8 @@
 from __future__ import annotations
 
 import logging
-from pathlib import Path
+import re
+from pathlib import Path, PurePosixPath, PureWindowsPath
 from uuid import UUID, uuid4
 
 from fastapi import BackgroundTasks, HTTPException, UploadFile, status
@@ -25,6 +26,18 @@ from app.services.document_intelligence.queue import DocumentProcessingQueue
 from app.services.document_intelligence.twin_sync import TwinSyncService
 
 logger = logging.getLogger(__name__)
+
+_UNSAFE_FILENAME_CHARS = re.compile(r"[^A-Za-z0-9._-]+")
+
+
+def sanitize_filename(filename: str | None, default: str = "document") -> str:
+    """Reduce a client-supplied filename to a safe basename (no separators, no '..')."""
+    if not filename:
+        return default
+    # Take the last component under both POSIX and Windows separator rules.
+    name = PureWindowsPath(PurePosixPath(filename.replace("\x00", "")).name).name
+    name = _UNSAFE_FILENAME_CHARS.sub("_", name).strip("._")
+    return name[:200] or default
 
 
 class DocumentIntelligenceService:
@@ -66,7 +79,12 @@ class DocumentIntelligenceService:
             version = parent.version + 1
 
         doc_id = uuid4()
-        safe_name = f"{doc_id}_{file.filename or 'document'}"
+        original_name = sanitize_filename(file.filename)
+        safe_name = f"{doc_id}_{original_name}"
+        # NOTE: this is local container disk. On App Service with
+        # WEBSITES_ENABLE_APP_SERVICE_STORAGE=false it is ephemeral, so files are
+        # lost on restart/redeploy/scale-out while DB rows keep pointing at them.
+        # Move to Azure Blob storage before relying on uploads in production.
         file_path = Path(settings.document_upload_dir) / safe_name
         file_path.write_bytes(content)
         file_url = f"/uploads/{safe_name}"
@@ -78,7 +96,7 @@ class DocumentIntelligenceService:
             parent_id=parent_id,
             version=version,
             document_type=document_type,
-            file_name=file.filename or "document",
+            file_name=original_name,
             file_url=file_url,
             file_hash=file_hash,
             mime_type=file.content_type,

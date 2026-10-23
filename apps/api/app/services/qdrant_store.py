@@ -1,5 +1,10 @@
-"""Qdrant vector store for university semantic search."""
+"""Qdrant vector store for university semantic search.
 
+Vector search is optional: if Qdrant is unreachable, searches return no hits
+(callers fall back to Postgres text search) and upserts are skipped.
+"""
+
+import logging
 from uuid import UUID
 
 from qdrant_client import QdrantClient
@@ -7,6 +12,8 @@ from qdrant_client.http import models as qmodels
 
 from app.core.config import settings
 from app.services.embedding import VECTOR_SIZE, get_embedding_provider
+
+logger = logging.getLogger(__name__)
 
 UNIVERSITY_COLLECTION = "universities"
 
@@ -38,8 +45,12 @@ class QdrantVectorStore:
         country: str,
         search_text: str,
         payload: dict | None = None,
-    ) -> None:
-        self.ensure_collection()
+    ) -> bool:
+        try:
+            self.ensure_collection()
+        except Exception as exc:
+            logger.warning("Qdrant unavailable, skipping vector upsert for %s: %s", university_id, exc)
+            return False
         text = search_text or f"{name} {country}"
         vector = self._embeddings.embed(text)
         point_payload = {
@@ -58,6 +69,7 @@ class QdrantVectorStore:
                 )
             ],
         )
+        return True
 
     def semantic_search(
         self,
@@ -66,7 +78,11 @@ class QdrantVectorStore:
         limit: int = 10,
         country: str | None = None,
     ) -> list[tuple[UUID, float]]:
-        self.ensure_collection()
+        try:
+            self.ensure_collection()
+        except Exception as exc:
+            logger.warning("Qdrant unavailable, falling back to text search: %s", exc)
+            return []
         vector = self._embeddings.embed(query)
 
         query_filter = None
@@ -87,7 +103,8 @@ class QdrantVectorStore:
                 limit=limit,
                 query_filter=query_filter,
             )
-        except Exception:
+        except Exception as exc:
+            logger.warning("Qdrant search failed, falling back to text search: %s", exc)
             return []
 
         output: list[tuple[UUID, float]] = []

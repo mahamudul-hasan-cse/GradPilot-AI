@@ -8,7 +8,11 @@ from fastapi import APIRouter, Depends, HTTPException, status
 from fastapi.responses import StreamingResponse
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.core.dependencies import get_current_active_user, get_current_active_user_optional
+from app.core.dependencies import (
+    get_current_active_user,
+    get_current_active_user_optional,
+    get_current_admin_user,
+)
 from app.db.session import get_db
 from app.models.user import User
 from app.schemas.knowledge import (
@@ -177,7 +181,7 @@ async def list_conversations(
 @router.post("/index", status_code=status.HTTP_202_ACCEPTED)
 async def index_knowledge_base(
     db: AsyncSession = Depends(get_db),
-    current_user: User = Depends(get_current_active_user),
+    current_user: User = Depends(get_current_admin_user),
 ) -> dict:
     """
     Re-index knowledge base from universities, scholarships, and static guides.

@@ -12,7 +12,10 @@ const protectedRoutes = [
   "/timeline",
   "/notifications",
   "/settings",
+  "/admin",
 ];
+
+const adminRoutes = ["/admin"];
 
 export default auth((req) => {
   const { pathname } = req.nextUrl;
@@ -31,6 +34,13 @@ export default auth((req) => {
       loginUrl.searchParams.set("callbackUrl", pathname);
     }
     return Response.redirect(loginUrl);
+  }
+
+  const isAdminRoute = adminRoutes.some(
+    (route) => pathname === route || pathname.startsWith(`${route}/`),
+  );
+  if (isAdminRoute && req.auth?.user?.role !== "admin") {
+    return Response.redirect(new URL("/dashboard", req.nextUrl.origin));
   }
 
   // Only redirect away from auth pages if the session is valid (no error state).

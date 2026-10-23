@@ -12,6 +12,12 @@ import httpx
 
 from app.core.config import settings
 from app.ingestion.schemas import ScrapeResult
+from app.ingestion.url_safety import UnsafeURLError, validate_public_url
+
+
+async def _guard_request(request: httpx.Request) -> None:
+    # Runs for every request the client sends, including redirect hops and robots.txt.
+    await validate_public_url(str(request.url))
 
 
 class UniversityScraper:
@@ -34,6 +40,7 @@ class UniversityScraper:
             timeout=self.timeout,
             follow_redirects=True,
             headers={"User-Agent": settings.ingestion_user_agent},
+            event_hooks={"request": [_guard_request]},
         )
         return self
 
@@ -72,6 +79,11 @@ class UniversityScraper:
 
     async def fetch(self, url: str) -> ScrapeResult:
         async with self.semaphore:
+            try:
+                await validate_public_url(url)
+            except UnsafeURLError as exc:
+                return ScrapeResult(url=url, status_code=0, html="", error=f"Blocked URL: {exc}")
+
             domain = self._domain(url)
             await self._respect_rate_limit(domain)
 
@@ -88,6 +100,8 @@ class UniversityScraper:
                     content_type=response.headers.get("content-type"),
                     error=None if response.status_code == 200 else f"HTTP {response.status_code}",
                 )
+            except UnsafeURLError as exc:
+                return ScrapeResult(url=url, status_code=0, html="", error=f"Blocked URL: {exc}")
             except httpx.HTTPError as exc:
                 return ScrapeResult(url=url, status_code=0, html="", error=str(exc))
 
