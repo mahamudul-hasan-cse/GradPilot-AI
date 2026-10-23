@@ -1,0 +1,14 @@
+# GradPilot API on Azure Container Apps.
+# The Next.js app stays on Vercel and is intentionally not listed here.
+name: gradpilot-ai
+metadata:
+  template: azd-init
+
+services:
+  api:
+    project: ./apps/api
+    language: python
+    host: containerapp
+    docker:
+      path: ./apps/api/Dockerfile
+      context: ./apps/api

@@ -18,6 +18,10 @@ env/
 .env.*.local
 apps/api/.env
 apps/web/.env.local
+
+# azd writes subscription ids and secret values here. Keep .azure/config.json.
+.azure/**/.env
+.azure/**/.env.*
 *.pem
 *.key
 credentials.json
