@@ -1,17 +1,69 @@
 from functools import lru_cache
 from pathlib import Path
 from typing import List
+from urllib.parse import parse_qsl, urlencode, urlsplit, urlunsplit
 
 from pydantic import AliasChoices, Field, field_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
-ROOT_DIR = Path(__file__).resolve().parents[4]
-API_DIR = Path(__file__).resolve().parents[2]
+_CONFIG_FILE = Path(__file__).resolve()
+# apps/api/app/core/config.py -> API root is parents[2].
+# The container image copies that tree to /app, which has no monorepo root above it.
+API_DIR = _CONFIG_FILE.parents[2]
+ROOT_DIR = _CONFIG_FILE.parents[4] if len(_CONFIG_FILE.parents) > 4 else API_DIR
+
+
+def settings_dirs(config_file: Path) -> tuple[Path, Path]:
+    """Return (repo_or_api_root, api_root) without assuming a monorepo layout."""
+
+    api_dir = config_file.parents[2]
+    root_dir = config_file.parents[4] if len(config_file.parents) > 4 else api_dir
+    return root_dir, api_dir
+
+
+def _env_files() -> tuple[str, ...]:
+    files: list[Path] = []
+    if len(_CONFIG_FILE.parents) > 4:
+        files.append(_CONFIG_FILE.parents[4] / ".env")
+    files.append(API_DIR / ".env")
+    return tuple(str(path) for path in files)
+
+
+def normalize_async_database_url(url: str) -> str:
+    """Return a SQLAlchemy asyncpg URL.
+
+    Azure Flexible Server strings use libpq's ``sslmode=require``.
+    asyncpg rejects that parameter and expects ``ssl=require``.
+    """
+
+    if url.startswith("postgres://") and not url.startswith("postgresql://"):
+        url = "postgresql://" + url[len("postgres://") :]
+    if url.startswith("postgresql://") and not url.startswith("postgresql+"):
+        url = "postgresql+asyncpg://" + url[len("postgresql://") :]
+
+    parts = urlsplit(url)
+    needs_ssl = False
+    saw_ssl = False
+    rewritten: list[tuple[str, str]] = []
+    for key, value in parse_qsl(parts.query, keep_blank_values=True):
+        if key == "ssl":
+            saw_ssl = True
+            rewritten.append((key, value))
+        elif key == "sslmode":
+            if value.lower() in {"require", "verify-ca", "verify-full", "prefer"}:
+                needs_ssl = True
+        elif key == "channel_binding":
+            continue
+        else:
+            rewritten.append((key, value))
+    if needs_ssl and not saw_ssl:
+        rewritten.append(("ssl", "require"))
+    return urlunsplit((parts.scheme, parts.netloc, parts.path, urlencode(rewritten), parts.fragment))
 
 
 class Settings(BaseSettings):
     model_config = SettingsConfigDict(
-        env_file=(ROOT_DIR / ".env", API_DIR / ".env"),
+        env_file=_env_files(),
         env_file_encoding="utf-8",
         case_sensitive=False,
         extra="ignore",
@@ -100,9 +152,7 @@ class Settings(BaseSettings):
     @property
     def async_database_url(self) -> str:
         if self.database_url:
-            if self.database_url.startswith("postgresql://"):
-                return self.database_url.replace("postgresql://", "postgresql+asyncpg://", 1)
-            return self.database_url
+            return normalize_async_database_url(self.database_url)
         return (
             f"postgresql+asyncpg://{self.postgres_user}:{self.postgres_password}"
             f"@{self.postgres_host}:{self.postgres_port}/{self.postgres_db}"

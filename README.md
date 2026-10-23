@@ -232,13 +232,9 @@ Supported methods: `generate_text()`, `chat()`, `rewrite()`, `summarize()`, `ana
 
 ## Deployment (production)
 
-Recommended stack:
-
-- **Database:** Neon PostgreSQL
-- **Backend:** Any Python host (Railway, Render, Fly.io, VPS)
-- **Frontend:** Vercel or similar
-- Set `ENVIRONMENT=production`, strong secrets, and a valid `OPENROUTER_API_KEY` or `GEMINI_API_KEY`
-- Use managed storage for uploads in production
+- **API and Postgres:** Azure Container Apps in `centralindia`. See [docs/azure-deploy.md](docs/azure-deploy.md).
+- **Frontend:** stays on Vercel. Set `NEXT_PUBLIC_API_URL` to the Azure `API_URL`.
+- Set `ENVIRONMENT=production`, `DEBUG=false`, a 32+ character `JWT_SECRET`, and `OPENROUTER_API_KEY` or `GEMINI_API_KEY`.
 
 ---
 

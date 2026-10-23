@@ -1,0 +1,39 @@
+{
+  "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentParameters.json#",
+  "contentVersion": "1.0.0.0",
+  "parameters": {
+    "environmentName": {
+      "value": "${AZURE_ENV_NAME}"
+    },
+    "location": {
+      "value": "${AZURE_LOCATION=centralindia}"
+    },
+    "resourceGroupName": {
+      "value": "${AZURE_RESOURCE_GROUP=rg-gradpilot}"
+    },
+    "postgresAdminLogin": {
+      "value": "${POSTGRES_ADMIN_LOGIN=gradpilot}"
+    },
+    "postgresAdminPassword": {
+      "value": "${POSTGRES_ADMIN_PASSWORD}"
+    },
+    "secretKey": {
+      "value": "${SECRET_KEY}"
+    },
+    "jwtSecret": {
+      "value": "${JWT_SECRET}"
+    },
+    "openRouterApiKey": {
+      "value": "${OPENROUTER_API_KEY}"
+    },
+    "openRouterModel": {
+      "value": "${OPENROUTER_MODEL=openai/gpt-4o-mini}"
+    },
+    "corsOrigins": {
+      "value": "${CORS_ORIGINS=https://gradpilot-ai.vercel.app,http://localhost:3000,http://127.0.0.1:3000}"
+    },
+    "keyVaultOfficerPrincipalType": {
+      "value": "${KEY_VAULT_OFFICER_PRINCIPAL_TYPE=User}"
+    }
+  }
+}
