@@ -2,6 +2,7 @@ from contextlib import asynccontextmanager
 import logging
 
 from fastapi import FastAPI, HTTPException, Request, status
+from fastapi.encoders import jsonable_encoder
 from fastapi.exceptions import RequestValidationError
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
@@ -58,11 +59,13 @@ def create_app() -> FastAPI:
 
     @app.exception_handler(RequestValidationError)
     async def validation_exception_handler(request: Request, exc: RequestValidationError) -> JSONResponse:
+        # jsonable_encoder: pydantic error ctx can hold Decimal values that json.dumps rejects.
+        errors = jsonable_encoder(exc.errors())
         return JSONResponse(
             status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
             content={
-                "detail": exc.errors(),
-                "error": {"code": "validation_error", "message": "Invalid request", "details": exc.errors()},
+                "detail": errors,
+                "error": {"code": "validation_error", "message": "Invalid request", "details": errors},
             },
         )
 

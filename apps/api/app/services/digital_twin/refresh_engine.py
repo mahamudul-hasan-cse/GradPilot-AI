@@ -73,7 +73,11 @@ class RecommendationRefreshEngine:
                     "history_id": str(analysis.history_id) if analysis.history_id else None,
                 },
                 "university_recommendation": {
-                    "total_matches": len(universities.matches),
+                    "total_matches": (
+                        len(universities.recommendations.safe)
+                        + len(universities.recommendations.target)
+                        + len(universities.recommendations.ambitious)
+                    ),
                     "history_id": str(universities.history_id) if universities.history_id else None,
                 },
                 "scholarship_matching": {

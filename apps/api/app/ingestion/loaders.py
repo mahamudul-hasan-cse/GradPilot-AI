@@ -133,8 +133,8 @@ class QdrantLoader:
     def __init__(self, vector_store: QdrantVectorStore | None = None):
         self.vector_store = vector_store or QdrantVectorStore()
 
-    def index_university(self, university: University) -> None:
-        self.vector_store.upsert_university(
+    def index_university(self, university: University) -> bool:
+        return self.vector_store.upsert_university(
             university.id,
             name=university.name,
             country=university.country,
@@ -148,6 +148,4 @@ class QdrantLoader:
         )
 
     def index_batch(self, universities: list[University]) -> int:
-        for university in universities:
-            self.index_university(university)
-        return len(universities)
+        return sum(1 for university in universities if self.index_university(university))

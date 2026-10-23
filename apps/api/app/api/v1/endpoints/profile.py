@@ -1,7 +1,11 @@
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.core.dependencies import get_current_active_user, get_current_active_user_optional
+from app.core.dependencies import (
+    get_current_active_user,
+    get_current_active_user_optional,
+    get_current_admin_user,
+)
 from app.db.session import get_db
 from app.models.user import User
 from app.schemas.profile_intelligence import (
@@ -85,6 +89,7 @@ async def analyze_profile(
 @router.get("/analyze/analytics", response_model=ProfileAnalysisAnalytics)
 async def get_profile_analysis_analytics(
     db: AsyncSession = Depends(get_db),
+    _admin: User = Depends(get_current_admin_user),
 ) -> ProfileAnalysisAnalytics:
     """
     Admin analytics dashboard for the Profile Intelligence Engine.

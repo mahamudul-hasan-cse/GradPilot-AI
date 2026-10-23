@@ -4,8 +4,10 @@ from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException, status
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from app.core.dependencies import get_current_admin_user
 from app.db.session import AsyncSessionLocal, get_db
 from app.ingestion.orchestrator import IngestionOrchestrator
+from app.ingestion.url_safety import UnsafeURLError, validate_public_url
 from app.models.ingestion import IngestionJob, IngestionSource
 from app.schemas.ingestion import (
     IngestionDashboardResponse,
@@ -15,7 +17,11 @@ from app.schemas.ingestion import (
     TriggerJobRequest,
 )
 
-router = APIRouter(prefix="/ingestion", tags=["Data Ingestion"])
+router = APIRouter(
+    prefix="/ingestion",
+    tags=["Data Ingestion"],
+    dependencies=[Depends(get_current_admin_user)],
+)
 
 
 async def _run_job_background(job_type: str, batch_size: int | None) -> None:
@@ -94,6 +100,11 @@ async def create_ingestion_source(
     data: IngestionSourceCreate,
     db: AsyncSession = Depends(get_db),
 ) -> IngestionSourceResponse:
+    try:
+        await validate_public_url(data.source_url)
+    except UnsafeURLError as exc:
+        raise HTTPException(status_code=status.HTTP_422_UNPROCESSABLE_ENTITY, detail=str(exc)) from exc
+
     existing = await db.execute(
         select(IngestionSource).where(IngestionSource.source_url == data.source_url)
     )

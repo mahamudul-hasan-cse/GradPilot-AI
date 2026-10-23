@@ -3,7 +3,7 @@ from uuid import UUID
 from fastapi import APIRouter, Depends
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.core.dependencies import get_current_active_user_optional
+from app.core.dependencies import get_current_active_user_optional, get_current_admin_user
 from app.db.session import get_db
 from app.models.user import User
 from app.schemas.recommendation import (
@@ -91,6 +91,7 @@ async def recommend_scholarships(
 @router.get("/scholarships/analytics", response_model=ScholarshipRecommendationAnalytics)
 async def get_scholarship_recommendation_analytics(
     db: AsyncSession = Depends(get_db),
+    _admin: User = Depends(get_current_admin_user),
 ) -> ScholarshipRecommendationAnalytics:
     """
     Admin analytics for the scholarship matching engine.
