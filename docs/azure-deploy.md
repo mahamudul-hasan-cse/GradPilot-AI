@@ -18,9 +18,9 @@ Resource group **`rg-gradpilot`**:
 | Log Analytics | 30-day retention, 0.1GB daily cap |
 | Application Insights | Workspace-based |
 
-The container app uses a **user-assigned** identity to read Key Vault and a **system-assigned** identity for ACR pull (`azd deploy` runs `az containerapp registry set --identity system`).
+The container app receives `DATABASE_URL`, `SECRET_KEY`, `JWT_SECRET`, and `OPENROUTER_API_KEY` as Container App secret values. Azure for Students uses Express Container Apps environments, which reject Key Vault URL secret references (`ExpressEnvironmentFeatureNotSupported`). The same four values are still written to Key Vault for storage and rotation. A **system-assigned** identity is used for ACR pull (`azd deploy` runs `az containerapp registry set --identity system`). The user-assigned identity keeps Key Vault Secrets User for operators.
 
-Postgres is reached over TLS. Container Apps Consumption does not have a stable outbound IP, so the firewall allows public clients by default (`postgresPublicAccess = true` in `infra/main.bicep`). The password still lives only in Key Vault. To restrict the rule to other Azure services, set that parameter to `false` and provision again. If the API then cannot connect, the region needs a NAT gateway, which this student layout avoids.
+Postgres is reached over TLS. Container Apps Consumption does not have a stable outbound IP, so the firewall allows public clients by default (`postgresPublicAccess = true` in `infra/main.bicep`). The password is a secure parameter, stored in Key Vault and injected into the Container App. It is not committed. To restrict the rule to other Azure services, set that parameter to `false` and provision again. If the API then cannot connect, the region needs a NAT gateway, which this student layout avoids.
 
 ## Prerequisites
 
@@ -134,7 +134,7 @@ curl "$(azd env get-value API_URL)/health/ready"
 
 ## Migrate the database
 
-The image includes Alembic. Run the migration inside the Container App so it uses the Key Vault `DATABASE_URL`:
+The image includes Alembic. Run the migration inside the Container App so it uses the injected `DATABASE_URL`:
 
 ```bash
 az containerapp exec \
@@ -168,7 +168,7 @@ azd env set OPENROUTER_API_KEY "<new-key>" --secret
 azd provision
 ```
 
-Provision rewrites the Key Vault secret. The Container App reads the versionless secret URI, then start a new revision if the running one still has the old value:
+Provision rewrites the Key Vault secret and the Container App secret value. Start a new revision if the running one still has the old value:
 
 ```bash
 az containerapp revision restart \

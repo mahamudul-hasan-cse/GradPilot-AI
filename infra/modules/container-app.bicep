@@ -10,8 +10,21 @@ param environmentId string
 
 param userAssignedIdentityId string
 
-@description('Key Vault URI including the trailing slash, for example https://kv-gp-abc.vault.azure.net/')
-param keyVaultUri string
+@description('PostgreSQL URL. Passed as a Container App secret value. Express environments reject keyVaultUrl references.')
+@secure()
+param databaseUrl string
+
+@description('Application SECRET_KEY.')
+@secure()
+param secretKey string
+
+@description('JWT signing secret.')
+@secure()
+param jwtSecret string
+
+@description('OpenRouter API key.')
+@secure()
+param openRouterApiKey string
 
 param corsOrigins string
 
@@ -52,26 +65,24 @@ resource api 'Microsoft.App/containerApps@2025-01-01' = {
       }
       // No registries block. azd deploy runs
       // `az containerapp registry set --identity system` and then updates the image.
+      // Express Container Apps environments reject keyVaultUrl (ExpressEnvironmentFeatureNotSupported).
+      // Values are still copied into Key Vault by the keyvault module for storage and rotation.
       secrets: [
         {
           name: 'database-url'
-          keyVaultUrl: '${keyVaultUri}secrets/database-url'
-          identity: userAssignedIdentityId
+          value: databaseUrl
         }
         {
           name: 'secret-key'
-          keyVaultUrl: '${keyVaultUri}secrets/secret-key'
-          identity: userAssignedIdentityId
+          value: secretKey
         }
         {
           name: 'jwt-secret'
-          keyVaultUrl: '${keyVaultUri}secrets/jwt-secret'
-          identity: userAssignedIdentityId
+          value: jwtSecret
         }
         {
           name: 'openrouter-api-key'
-          keyVaultUrl: '${keyVaultUri}secrets/openrouter-api-key'
-          identity: userAssignedIdentityId
+          value: openRouterApiKey
         }
         {
           name: 'appinsights-connection-string'

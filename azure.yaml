@@ -9,7 +9,7 @@ services:
     project: ./apps/api
     language: python
     host: containerapp
-    # path and context are relative to project. "." is apps/api at the repo root.
+    # path and context are relative to project (./apps/api), not the repo root.
     docker:
-      path: Dockerfile
+      path: ./Dockerfile
       context: .

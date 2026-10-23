@@ -175,7 +175,10 @@ module api 'modules/container-app.bicep' = {
     tags: union(tags, { 'azd-service-name': 'api' })
     environmentId: containerAppsEnvironment.outputs.id
     userAssignedIdentityId: identity.outputs.id
-    keyVaultUri: keyVault.outputs.uri
+    databaseUrl: postgres.outputs.databaseUrl
+    secretKey: secretKey
+    jwtSecret: jwtSecret
+    openRouterApiKey: openRouterApiKey
     corsOrigins: corsOrigins
     openRouterModel: openRouterModel
     applicationInsightsConnectionString: monitoring.outputs.appInsightsConnectionString
