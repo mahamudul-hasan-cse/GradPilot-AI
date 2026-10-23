@@ -9,7 +9,7 @@ from typing import Any
 
 import httpx
 
-from app.core.config import settings
+from app.core.config import present_secret, settings
 
 logger = logging.getLogger(__name__)
 
@@ -24,7 +24,7 @@ class GeminiService:
     provider_name = "gemini"
 
     def __init__(self) -> None:
-        self.api_key = settings.gemini_api_key
+        self.api_key = present_secret(settings.gemini_api_key)
         self.model = settings.gemini_model
 
     @property
@@ -39,7 +39,7 @@ class GeminiService:
         temperature: float = 0.2,
     ) -> str:
         if not self.api_key:
-            return _fallback_response(prompt)
+            return fallback_response(prompt)
 
         # The key is passed via header so it never appears in URLs or logs.
         url = (
@@ -74,7 +74,7 @@ class GeminiService:
                     logger.warning("Gemini request error (%s); using fallback.", type(exc).__name__)
                     break
 
-        return _fallback_response(prompt)
+        return fallback_response(prompt)
 
     async def chat(
         self,
@@ -111,7 +111,7 @@ class GeminiService:
             yield word + " "
 
 
-def _fallback_response(prompt: str) -> str:
+def fallback_response(prompt: str) -> str:
     context_start = prompt.find("Context:")
     question_start = prompt.find("Question:")
     context = prompt[context_start:question_start].strip() if context_start >= 0 and question_start >= 0 else prompt
@@ -124,5 +124,5 @@ def _fallback_response(prompt: str) -> str:
     return (
         f"Based on GradPilot's available knowledge:\n\n{context[:1200]}\n\n"
         f"Regarding your question ({question[:200]}), the context above contains the most relevant guidance. "
-        "Add GEMINI_API_KEY for a fuller AI-generated response."
+        "Add OPENROUTER_API_KEY or GEMINI_API_KEY for a fuller AI-generated response."
     )

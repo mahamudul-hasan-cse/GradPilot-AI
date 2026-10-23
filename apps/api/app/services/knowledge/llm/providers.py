@@ -1,11 +1,11 @@
-"""Compatibility shim for the Gemini-only AI service."""
+"""Compatibility shim over the shared generative AI service (OpenRouter or Gemini)."""
 
 from __future__ import annotations
 
 from abc import ABC, abstractmethod
 from collections.abc import AsyncIterator
 
-from app.services.ai.gemini_service import GeminiService
+from app.services.ai import GenerativeService, get_generative_service
 
 
 class LLMProvider(ABC):
@@ -24,13 +24,12 @@ class LLMProvider(ABC):
         return True
 
 
-class GeminiLLMProvider(LLMProvider):
-    """Legacy provider interface backed by the single GeminiService."""
+class GenerativeLLMProvider(LLMProvider):
+    """Legacy provider interface backed by the preferred generative service."""
 
-    provider_name = "gemini"
-
-    def __init__(self) -> None:
-        self.service = GeminiService()
+    def __init__(self, service: GenerativeService | None = None) -> None:
+        self.service = service or get_generative_service()
+        self.provider_name = self.service.provider_name
 
     @property
     def is_available(self) -> bool:
@@ -46,5 +45,11 @@ class GeminiLLMProvider(LLMProvider):
 
 def get_llm_provider(provider: str | None = None) -> LLMProvider:
     # Keep the old function signature so existing endpoints and engines do not break.
-    # Provider selection is intentionally ignored: Gemini is the only generative AI engine.
-    return GeminiLLMProvider()
+    # The explicit argument is ignored; selection follows configured keys
+    # (OpenRouter first, then Gemini, then fallback text).
+    _ = provider
+    return GenerativeLLMProvider()
+
+
+# Backwards-compatible alias for the previous class name.
+GeminiLLMProvider = GenerativeLLMProvider

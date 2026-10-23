@@ -33,7 +33,10 @@ class KnowledgeChatRequest(BaseModel):
     message: str = Field(min_length=1, max_length=4000)
     session_id: UUID | None = Field(default=None, description="Existing conversation session")
     source_types: list[str] | None = None
-    llm_provider: str | None = Field(default=None, description="Deprecated; Gemini is always used")
+    llm_provider: str | None = Field(
+        default=None,
+        description="Deprecated and ignored. Provider follows configured keys: OpenRouter, then Gemini.",
+    )
     stream: bool = Field(default=False)
 
 

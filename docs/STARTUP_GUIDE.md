@@ -6,7 +6,7 @@ Step-by-step instructions to run GradPilot locally without Docker.
 
 1. Copy `.env.example` → `.env` at the repo root.
 2. Copy `apps/web/.env.example` → `apps/web/.env.local`.
-3. Set your own `GEMINI_API_KEY`, database URL, and random secrets.
+3. Set your own `OPENROUTER_API_KEY` (preferred) or `GEMINI_API_KEY`, database URL, and random secrets.
 4. **Never commit `.env` or `.env.local`** — they are gitignored.
 
 ---
@@ -99,6 +99,8 @@ DATABASE_URL=
 SECRET_KEY=
 JWT_SECRET=
 AUTH_SECRET=
+OPENROUTER_API_KEY=
+OPENROUTER_MODEL=openai/gpt-4o-mini
 GEMINI_API_KEY=
 GEMINI_MODEL=gemini-2.5-flash
 UPLOAD_DIR=uploads
@@ -126,7 +128,7 @@ AUTH_URL=http://localhost:3000
 | `failed to fetch` on login | Check backend is running; verify `NEXT_PUBLIC_API_URL` in `.env.local` |
 | Redirect loop on login | Clear browser cookies; ensure `AUTH_SECRET` matches in both env files |
 | Empty universities/scholarships | Run `python scripts/seed_universities_scholarships.py` |
-| AI advisor not responding | Set a valid `GEMINI_API_KEY` in `.env` and restart backend |
+| AI advisor not responding | Set a valid `OPENROUTER_API_KEY` or `GEMINI_API_KEY` in `.env` and restart backend |
 | Hydration warning in browser | Usually caused by Grammarly extension — safe to ignore |
 
 ---
