@@ -1,5 +1,6 @@
 import type { PaginatedResponse, Scholarship, TokenResponse, University, User } from "@gradpilot/shared";
 
+import { apiErrorMessage } from "./api-error-message";
 import { getApiV1Url } from "./utils";
 
 export class ApiError extends Error {
@@ -43,11 +44,7 @@ async function request<T>(path: string, options: RequestOptions = {}): Promise<T
       const callbackUrl = encodeURIComponent(window.location.pathname + window.location.search);
       window.location.assign(`/login?callbackUrl=${callbackUrl}`);
     }
-    const message =
-      typeof errorBody.detail === "string"
-        ? errorBody.detail
-        : `Request failed with status ${response.status}`;
-    throw new ApiError(response.status, message);
+    throw new ApiError(response.status, apiErrorMessage(errorBody, response.status));
   }
 
   if (response.status === 204) {
